@@ -1,0 +1,27 @@
+# Dados brutos e intermediários (grandes; não versionar o conteúdo)
+# data/external (malhas + população, ~8 MB estáveis) É versionado — o CI precisa dele.
+data/raw/*
+data/processed/*
+!data/processed/.gitkeep
+*.part
+*.pmtiles
+*.mbtiles
+# exceção: os tiles publicados fazem parte do site (repo autossuficiente p/ Pages)
+!web/public/data/ocorrencias.pmtiles
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.env
+
+# Node / Vite
+node_modules/
+web/dist/
+.DS_Store
+
+# Mantém a estrutura de pastas de dados
+!data/raw/.gitkeep
+!data/external/.gitkeep
+!data/processed/.gitkeep

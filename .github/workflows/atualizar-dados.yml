@@ -1,0 +1,47 @@
+# Atualização mensal: baixa dados novos da SSP, reprocessa tudo e comita os
+# artefatos de volta no repo (o push dispara o workflow de deploy).
+# A SSP atualiza os xlsx ao longo do mês seguinte; rodamos dia 5.
+name: Atualizar dados
+
+on:
+  schedule:
+    - cron: "0 6 5 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  pipeline:
+    runs-on: ubuntu-latest
+    timeout-minutes: 180
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt mapbox-vector-tile pmtiles
+
+      - name: Pipeline de dados (download é lento — servidor da SSP cai; o script retoma)
+        run: |
+          python pipeline/01_download.py
+          python pipeline/02_clean.py
+          python pipeline/03_geo.py
+          python pipeline/04_aggregate.py
+          python pipeline/05_points.py
+
+      - name: Comitar artefatos atualizados
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add web/public/data
+          if git diff --cached --quiet; then
+            echo "sem mudanças nos dados"
+          else
+            git commit -m "dados: atualização automática $(date -u +%Y-%m)"
+            git push
+          fi

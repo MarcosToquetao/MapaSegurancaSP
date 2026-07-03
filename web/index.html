@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mapa da Segurança — São Paulo</title>
+  <meta name="description" content="Dados públicos de segurança da cidade de São Paulo: do panorama por região ao ponto exato das ocorrências. Fonte: SSP-SP." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+</head>
+<body>
+  <div id="app">
+    <header id="topo">
+      <a class="marca" href="#mapa">
+        <span class="placa">SP</span>
+        <span class="marca-texto">Mapa da <strong>Segurança</strong></span>
+      </a>
+      <nav id="abas" role="tablist" aria-label="Seções">
+        <button role="tab" data-aba="mapa" aria-selected="true">Mapa</button>
+        <button role="tab" data-aba="painel" aria-selected="false">Painel</button>
+        <button role="tab" data-aba="series" aria-selected="false">Séries</button>
+      </nav>
+      <p class="fonte-dados">Fonte: SSP-SP · Censo 2022</p>
+    </header>
+
+    <!-- ABA 1 · MAPA -->
+    <section id="view-mapa" class="view ativa" role="tabpanel">
+      <div id="mapa"></div>
+
+      <aside id="controles-mapa" class="flutuante">
+        <p class="rotulo-grupo">O quê</p>
+        <div id="m-categorias" class="chips"></div>
+        <select id="m-natureza" aria-label="Natureza da ocorrência"></select>
+        <p class="rotulo-grupo">Quando</p>
+        <div class="linha-controles">
+          <select id="m-ano" aria-label="Ano"></select>
+          <select id="m-mes" aria-label="Mês"></select>
+        </div>
+        <p class="rotulo-grupo">Como contar</p>
+        <div id="m-metrica" class="chips">
+          <button data-metrica="taxa" class="ativo">taxa /100k</button>
+          <button data-metrica="absoluto">absoluto</button>
+        </div>
+        <p class="nota" id="m-dica">Aproxime o zoom para ver as ocorrências uma a uma.</p>
+        <p class="nota aviso" id="m-aviso-genero" hidden>
+          Violência sexual tem o endereço anonimizado por lei — aparece no agregado
+          por distrito, não como pontos.
+        </p>
+      </aside>
+
+      <aside id="painel-mapa" class="flutuante">
+        <div id="m-kpis"></div>
+        <div id="m-ranking"></div>
+      </aside>
+    </section>
+
+    <!-- ABA 2 · PAINEL -->
+    <section id="view-painel" class="view" role="tabpanel" hidden>
+      <div class="miolo">
+        <div id="p-filtros" class="barra-filtros">
+          <div id="p-categorias" class="chips"></div>
+          <select id="p-natureza" aria-label="Natureza"></select>
+          <select id="p-sub" aria-label="Subprefeitura"></select>
+          <select id="p-ano" aria-label="Ano"></select>
+        </div>
+        <div id="p-kpis" class="grade-kpis"></div>
+        <div class="grade-cartoes">
+          <article class="cartao largo">
+            <h2>Evolução mensal <span id="p-titulo-contexto"></span></h2>
+            <div id="p-evolucao" class="grafico"></div>
+          </article>
+          <article class="cartao alto">
+            <h2>Subprefeituras <span class="sufixo" id="p-ranking-sufixo"></span></h2>
+            <div id="p-ranking" class="grafico"></div>
+          </article>
+          <article class="cartao">
+            <h2>Composição por natureza</h2>
+            <div id="p-naturezas" class="grafico"></div>
+          </article>
+          <article class="cartao">
+            <h2>Circunstância <span class="sufixo">roubos e furtos</span></h2>
+            <div id="p-condutas" class="grafico"></div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABA 3 · SÉRIES -->
+    <section id="view-series" class="view" role="tabpanel" hidden>
+      <div class="miolo">
+        <div class="barra-filtros">
+          <div id="s-series" class="chips multi" aria-label="Séries exibidas"></div>
+          <div id="s-opcoes" class="chips">
+            <button data-op="mm" aria-pressed="true" class="ativo">média móvel 3m</button>
+          </div>
+        </div>
+        <article class="cartao largo">
+          <h2>Ocorrências por mês <span class="sufixo">cidade de São Paulo</span></h2>
+          <div id="s-grafico" class="grafico grande"></div>
+        </article>
+        <div id="s-multiplos" class="grade-multiplos"></div>
+        <p class="nota">
+          "Roubo/furto de celular" não existe como recorte próprio nos microdados da SSP —
+          o mais próximo é a circunstância <em>transeunte</em> (crime de rua), exibida acima.
+        </p>
+      </div>
+    </section>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
