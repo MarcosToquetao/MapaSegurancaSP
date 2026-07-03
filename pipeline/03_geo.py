@@ -73,8 +73,7 @@ def preparar_malhas() -> gpd.GeoDataFrame:
     return dist
 
 
-def spatial_join(ano: int, dist: gpd.GeoDataFrame) -> None:
-    arq = PROC / f"ocorrencias_{ano}.parquet"
+def spatial_join(arq: Path, dist: gpd.GeoDataFrame) -> None:
     df = pd.read_parquet(arq)
     geo = df["LATITUDE"].notna()
     pontos = gpd.GeoDataFrame(
@@ -110,17 +109,19 @@ def spatial_join(ano: int, dist: gpd.GeoDataFrame) -> None:
 
     df.to_parquet(arq, index=False)
     total = df["cd_distrito"].notna().mean()
-    print(f"[{ano}] join: {dentro:.1%} dos pontos em distrito | "
+    print(f"[{arq.stem}] join: {dentro:.1%} dos pontos em distrito | "
           f"+{recuperados.sum():,} via bairro | cobertura total {total:.1%}")
 
 
 def main() -> None:
     dist = preparar_malhas()
-    anos = [int(a) for a in sys.argv[1:]] or sorted(
-        int(p.stem.split("_")[1]) for p in PROC.glob("ocorrencias_*.parquet")
-    )
-    for ano in anos:
-        spatial_join(ano, dist)
+    anos = [int(a) for a in sys.argv[1:]]
+    arquivos = sorted(list(PROC.glob("ocorrencias_*.parquet")) +
+                      list(PROC.glob("celulares_*.parquet")))
+    if anos:
+        arquivos = [a for a in arquivos if int(a.stem.split("_")[1]) in anos]
+    for arq in arquivos:
+        spatial_join(arq, dist)
 
 
 if __name__ == "__main__":

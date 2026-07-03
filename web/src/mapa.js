@@ -2,7 +2,7 @@
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import {
-  estado, dados, mudar, aoMudar, ROTULOS, CORES,
+  estado, dados, mudar, aoMudar, ROTULOS, CORES, ORDEM_CHIPS,
   contagemPorDistrito, indicesPeriodo, somaPeriodo, serieCidade, taxa100k,
   anosDisponiveis, fmt, fmt1,
 } from "./estado.js";
@@ -10,13 +10,13 @@ import {
 const ZOOM_PONTOS = 12.5;
 let mapa;
 
-// rampa neutra→cor da categoria (o coroplético muda de pele com a categoria)
+// rampa preto→cor da categoria (o coroplético muda de pele com a categoria)
 function rampa() {
   const cor = CORES[estado.categoria];
-  return ["#1d242d", "#27323e", mistura(cor, 0.35), mistura(cor, 0.6), mistura(cor, 0.82), cor];
+  return ["#17181b", "#232427", mistura(cor, 0.35), mistura(cor, 0.6), mistura(cor, 0.82), cor];
 }
 function mistura(hex, t) {
-  const [r1, g1, b1] = [0x1d, 0x24, 0x2d];
+  const [r1, g1, b1] = [0x17, 0x18, 0x1b];
   const [r2, g2, b2] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
   const c = (a, b) => Math.round(a + (b - a) * t);
   return `rgb(${c(r1, r2)},${c(g1, g2)},${c(b1, b2)})`;
@@ -42,9 +42,9 @@ export function initMapa() {
   mapa.on("load", () => {
     mapa.addSource("distritos", { type: "geojson", data: dados.distritos, promoteId: "cd_distrito" });
     mapa.addLayer({ id: "coropletico", type: "fill", source: "distritos",
-      paint: { "fill-color": "#27323e", "fill-opacity": 0.75 } });
+      paint: { "fill-color": "#232427", "fill-opacity": 0.75 } });
     mapa.addLayer({ id: "coropletico-borda", type: "line", source: "distritos",
-      paint: { "line-color": "#10151a", "line-width": 0.7 } });
+      paint: { "line-color": "#0a0b0c", "line-width": 0.7 } });
 
     if (dados.pontosMeta) adicionarPontos();
     popupsDistrito();
@@ -129,8 +129,9 @@ function adicionarPontos() {
       "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 11, 0.25, 15, 0.9],
       "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 11, 10, 15, 26],
       "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 14.5, 0.85, 15.5, 0],
+      // brasa: preto → vinho → vermelho → branco (o tricolor em rampa térmica)
       "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"],
-        0, "rgba(0,0,0,0)", 0.3, "#27323e", 0.55, "#3f6470", 0.75, "#d9c26a", 1, "#ff6b4a"],
+        0, "rgba(0,0,0,0)", 0.3, "#4a0b12", 0.55, "#a41220", 0.78, "#e8112d", 1, "#ffffff"],
     },
   });
 
@@ -140,9 +141,9 @@ function adicionarPontos() {
     paint: {
       "circle-radius": ["interpolate", ["linear"], ["zoom"], 14.5, 3.5, 18, 8],
       "circle-color": ["match", ["get", "c"],
-        0, CORES.letais, 1, CORES.roubos, 2, CORES.furtos, 3, CORES.genero, "#999"],
-      "circle-opacity": 0.8,
-      "circle-stroke-color": "#10151a", "circle-stroke-width": 0.6,
+        0, CORES.letais, 1, CORES.roubos, 2, CORES.furtos, 3, CORES.genero, 4, CORES.celular, "#999"],
+      "circle-opacity": 0.85,
+      "circle-stroke-color": "#0d0e10", "circle-stroke-width": 0.6,
     },
   });
 
@@ -168,7 +169,7 @@ function adicionarPontos() {
       .join("<br>");
     popup.setLngLat(e.lngLat).setHTML(
       `<strong><span class="num">${feats.length}</span> ocorrência${feats.length > 1 ? "s" : ""} neste local</strong>` +
-      `<br>${linhas}<br><small style="color:#6a7c8c">posição aproximada · geocodificação SSP</small>`
+      `<br>${linhas}<br><small style="color:#6f747c">posição aproximada · geocodificação SSP</small>`
     ).addTo(mapa);
   });
   mapa.on("mouseleave", "pontos-circulo", () => {
@@ -191,7 +192,7 @@ function atualizarFiltroPontos() {
 /* ---------------- controles + painel lateral ---------------- */
 function initControles() {
   const elCat = document.getElementById("m-categorias");
-  elCat.innerHTML = dados.agg.categorias.map((c) =>
+  elCat.innerHTML = ORDEM_CHIPS.filter((c) => dados.agg.categorias.includes(c)).map((c) =>
     `<button data-cat="${c}" style="--cor-chip:${CORES[c]}" class="${c === estado.categoria ? "ativo" : ""}">${ROTULOS[c]}</button>`
   ).join("");
   elCat.addEventListener("click", (e) => {

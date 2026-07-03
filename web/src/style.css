@@ -1,30 +1,31 @@
 /* ============================================================
    Mapa da Segurança SP — sistema de design
    Direção: "boletim de ocorrência × sinalização urbana de SP"
-   - fundo cinza-garoa (grafite azulado, nunca preto puro)
+   - tricolor preto/vermelho/branco (cartaz urbano paulistano)
    - Archivo (DNA de placa de rua; expandida nos títulos)
    - IBM Plex Mono para números (registro oficial, tabular)
-   - paleta categórica por tipo de crime (a identidade do site)
+   - categorias diferenciadas por temperatura dentro do tricolor
    - assinatura: chips "placa de rua" no wordmark e rótulos
    ============================================================ */
 :root {
-  /* garoa */
-  --garoa-0: #14181d;
-  --garoa-1: #1b2129;
-  --garoa-2: #232b35;
-  --linha: #303a46;
-  --texto: #eef2f6;
-  --texto-2: #9db0c0;
-  --texto-3: #6a7c8c;
+  /* pretos neutros */
+  --garoa-0: #0d0e10;
+  --garoa-1: #161719;
+  --garoa-2: #1f2124;
+  --linha: #2c2e33;
+  --texto: #f5f6f7;
+  --texto-2: #a9adb4;
+  --texto-3: #6f747c;
   /* placa esmaltada */
-  --placa-fundo: #f4f6f8;
-  --placa-texto: #10151a;
-  /* categorias — a paleta É a identidade */
-  --c-letais: #ff6b4a;
-  --c-roubos: #ffb454;
-  --c-furtos: #45c4c9;
-  --c-genero: #b48cff;
-  --acento: var(--c-letais);
+  --placa-fundo: #f7f8f9;
+  --placa-texto: #0d0e10;
+  /* categorias — temperaturas do tricolor */
+  --c-celular: #ff3b30;
+  --c-letais: #e8112d;
+  --c-roubos: #a41220;
+  --c-furtos: #9aa5b1;
+  --c-genero: #f5f6f8;
+  --acento: #e8112d;
 
   --fonte: "Archivo", system-ui, sans-serif;
   --mono: "IBM Plex Mono", ui-monospace, monospace;
@@ -131,8 +132,10 @@ select {
 }
 #m-kpis .kpi-rotulo { font-size: 12px; color: var(--texto-2); }
 .delta { font-family: var(--mono); font-size: 12px; }
-.delta.sobe { color: #ff8d75; }
-.delta.desce { color: #5fd6a0; }
+.delta.sobe { color: #ff4a3d; }
+.delta.desce { color: #d7dce1; }
+.delta.desce::before { content: "▾ "; font-size: 10px; }
+.delta.sobe::before { content: "▴ "; font-size: 10px; }
 
 #m-ranking table { width: 100%; border-collapse: collapse; font-size: 12.5px; }
 #m-ranking td { padding: 4px 2px; border-top: 1px solid var(--linha); }

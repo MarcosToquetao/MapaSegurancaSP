@@ -33,7 +33,7 @@ WEB_DATA = BASE / "web" / "public" / "data"
 MINZOOM, MAXZOOM = 9, 14
 EXTENT = 4096
 CAP = {9: 2000, 10: 3000, 11: 4000, 12: 6000, 13: 9000}  # por tile × categoria
-CATEGORIAS = ["letais", "roubos", "furtos", "genero"]
+CATEGORIAS = ["letais", "roubos", "furtos", "genero", "celular"]
 random.seed(42)  # reprodutível entre execuções
 
 
@@ -47,7 +47,8 @@ def lonlat_para_tile(lon: float, lat: float, z: int) -> tuple[int, int, float, f
 
 
 def carregar_pontos() -> pd.DataFrame:
-    arquivos = sorted(PROC.glob("ocorrencias_*.parquet"))
+    arquivos = sorted(list(PROC.glob("ocorrencias_*.parquet")) +
+                      list(PROC.glob("celulares_*.parquet")))
     df = pd.concat(
         (pd.read_parquet(a, columns=[
             "categoria", "NATUREZA_APURADA", "LATITUDE", "LONGITUDE",

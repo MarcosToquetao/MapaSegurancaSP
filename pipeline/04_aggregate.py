@@ -27,7 +27,7 @@ PROC = BASE / "data" / "processed"
 EXT = BASE / "data" / "external"
 WEB_DATA = BASE / "web" / "public" / "data"
 
-CATEGORIAS = ["letais", "roubos", "furtos", "genero"]
+CATEGORIAS = ["letais", "roubos", "furtos", "genero", "celular"]
 # condutas com leitura cidadã clara (evita a poluição do "Outros")
 CONDUTAS_RELEVANTES = {
     "Transeunte", "Interior de Veículo", "Residência", "Estabelecimento Comercial",
@@ -51,7 +51,8 @@ def series_por(df: pd.DataFrame, chaves: list[str], pos: dict, n_meses: int) -> 
 
 
 def main() -> None:
-    arquivos = sorted(PROC.glob("ocorrencias_*.parquet"))
+    arquivos = sorted(list(PROC.glob("ocorrencias_*.parquet")) +
+                      list(PROC.glob("celulares_*.parquet")))
     df = pd.concat(
         (pd.read_parquet(a, columns=[
             "categoria", "NATUREZA_APURADA", "DESCR_CONDUTA", "cd_distrito",
@@ -76,7 +77,7 @@ def main() -> None:
         "por_categoria": series_por(df, ["categoria"], pos, nm),
         "por_natureza": series_por(df, ["NATUREZA_APURADA"], pos, nm),
         "por_conduta": series_por(
-            df[df["categoria"].isin(["roubos", "furtos"])
+            df[df["categoria"].isin(["roubos", "furtos", "celular"])
                & df["DESCR_CONDUTA"].isin(CONDUTAS_RELEVANTES)],
             ["categoria", "DESCR_CONDUTA"], pos, nm,
         ),

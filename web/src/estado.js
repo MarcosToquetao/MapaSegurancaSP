@@ -1,19 +1,27 @@
 // Estado compartilhado entre as abas + pub/sub mínimo.
 export const ROTULOS = {
+  celular: "Celulares",
   letais: "Violentos letais",
   roubos: "Roubos",
   furtos: "Furtos",
   genero: "Violência de gênero",
 };
+// paleta preto/vermelho/branco: categorias diferenciadas por temperatura
+// dentro do sistema tricolor (vermelho vivo, vinho, prata, branco)
 export const CORES = {
-  letais: "#ff6b4a",
-  roubos: "#ffb454",
-  furtos: "#45c4c9",
-  genero: "#b48cff",
+  celular: "#ff3b30",
+  letais: "#e8112d",
+  roubos: "#a41220",
+  furtos: "#9aa5b1",
+  genero: "#f5f6f8",
 };
 
+// ordem de exibição dos chips (celular primeiro: é o crime que mais
+// afeta o cotidiano paulistano hoje)
+export const ORDEM_CHIPS = ["celular", "roubos", "furtos", "letais", "genero"];
+
 export const estado = {
-  categoria: "roubos",
+  categoria: "celular",
   natureza: null,   // null = todas as naturezas da categoria
   ano: null,        // definido no boot (último ano disponível)
   mes: null,        // null = ano inteiro; "01".."12"

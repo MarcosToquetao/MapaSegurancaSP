@@ -43,6 +43,8 @@ function initAbas() {
   dados.distritos = distritos;
   dados.pontosMeta = pontosMeta;
   estado.ano = anosDisponiveis().at(-1);
+  // se os agregados ainda não trazem a categoria default, recua para a primeira
+  if (!agg.cidade.por_categoria[estado.categoria]) estado.categoria = agg.categorias[0];
 
   initAbas();
   iniciadas.add("mapa");

@@ -2,16 +2,17 @@
 // composição por natureza e circunstância (conduta).
 import * as echarts from "echarts";
 import {
-  estado, dados, ROTULOS, CORES, fmt, fmt1, anosDisponiveis, taxa100k,
+  estado, dados, ROTULOS, CORES, ORDEM_CHIPS, fmt, fmt1, anosDisponiveis, taxa100k,
 } from "./estado.js";
 import { TEMA, grafico, rotuloMes } from "./tema-grafico.js";
 
 // filtros próprios da aba (não interferem no mapa)
-const f = { categoria: "roubos", natureza: null, sub: null, ano: null };
+const f = { categoria: "celular", natureza: null, sub: null, ano: null };
 let gEvolucao, gRanking, gNaturezas, gCondutas;
 
 export function initPainel() {
   f.ano = anosDisponiveis().at(-1);
+  if (!dados.agg.cidade.por_categoria[f.categoria]) f.categoria = dados.agg.categorias[0];
   initFiltros();
   gEvolucao = grafico(echarts, document.getElementById("p-evolucao"));
   gRanking = grafico(echarts, document.getElementById("p-ranking"));
@@ -37,7 +38,7 @@ function serieSelecao() {
 
 function initFiltros() {
   const elCat = document.getElementById("p-categorias");
-  elCat.innerHTML = dados.agg.categorias.map((c) =>
+  elCat.innerHTML = ORDEM_CHIPS.filter((c) => dados.agg.categorias.includes(c)).map((c) =>
     `<button data-cat="${c}" style="--cor-chip:${CORES[c]}" class="${c === f.categoria ? "ativo" : ""}">${ROTULOS[c]}</button>`
   ).join("");
   elCat.addEventListener("click", (e) => {
@@ -129,7 +130,7 @@ function renderEvolucao() {
       type: "bar", data: serie, barWidth: "62%",
       itemStyle: {
         color: (p) => dados.agg.meses[p.dataIndex].startsWith(f.ano)
-          ? CORES[f.categoria] : "#39434f",
+          ? CORES[f.categoria] : "#33363b",
         borderRadius: [3, 3, 0, 0],
       },
     }],
@@ -151,18 +152,18 @@ function renderRanking() {
       ...TEMA.base.tooltip,
       formatter: (p) => `<b>${p.name}</b><br>${fmt1.format(p.value)}/100k · ${fmt.format(linhas[linhas.length - 1 - p.dataIndex].n)} ocorrências`,
     },
-    xAxis: { type: "value", ...TEMA.eixoX, splitLine: { lineStyle: { color: "#232b35" } } },
+    xAxis: { type: "value", ...TEMA.eixoX, splitLine: { lineStyle: { color: "#1f2124" } } },
     yAxis: {
       type: "category",
       data: linhas.map((l) => l.nome).reverse(),
-      axisLabel: { color: "#9db0c0", fontSize: 10.5 },
+      axisLabel: { color: "#a9adb4", fontSize: 10.5 },
       axisLine: { show: false }, axisTick: { show: false },
     },
     series: [{
       type: "bar", data: linhas.map((l) => +l.taxa.toFixed(1)).reverse(), barWidth: "58%",
       itemStyle: { color: CORES[f.categoria], borderRadius: [0, 3, 3, 0] },
       label: {
-        show: true, position: "right", color: "#6a7c8c", fontSize: 9.5,
+        show: true, position: "right", color: "#6f747c", fontSize: 9.5,
         fontFamily: "IBM Plex Mono, monospace",
       },
     }],
@@ -183,20 +184,20 @@ function renderNaturezas() {
     xAxis: { type: "value", ...TEMA.eixoX, splitLine: { show: false }, axisLabel: { show: false } },
     yAxis: {
       type: "category", data: linhas.map((l) => l.n.toLowerCase()).reverse(),
-      axisLabel: { color: "#9db0c0", fontSize: 10.5, width: 150, overflow: "truncate" },
+      axisLabel: { color: "#a9adb4", fontSize: 10.5, width: 150, overflow: "truncate" },
       axisLine: { show: false }, axisTick: { show: false },
     },
     series: [{
       type: "bar", data: linhas.map((l) => l.v).reverse(), barWidth: "55%",
       itemStyle: { color: CORES[f.categoria], borderRadius: [0, 3, 3, 0] },
-      label: { show: true, position: "right", color: "#9db0c0", fontSize: 10, fontFamily: "IBM Plex Mono, monospace", formatter: (p) => fmt.format(p.value) },
+      label: { show: true, position: "right", color: "#a9adb4", fontSize: 10, fontFamily: "IBM Plex Mono, monospace", formatter: (p) => fmt.format(p.value) },
     }],
   }, true);
 }
 
 function renderCondutas() {
   const idx = idxAno(f.ano);
-  const porCat = dados.agg.cidade.por_conduta[["roubos", "furtos"].includes(f.categoria) ? f.categoria : "roubos"] ?? {};
+  const porCat = dados.agg.cidade.por_conduta[["roubos", "furtos", "celular"].includes(f.categoria) ? f.categoria : "roubos"] ?? {};
   const linhas = Object.entries(porCat)
     .map(([c, serie]) => ({ c, v: soma(serie, idx) }))
     .filter((l) => l.v > 0).sort((a, b) => b.v - a.v);
@@ -208,11 +209,12 @@ function renderCondutas() {
       type: "pie", radius: ["44%", "72%"], center: ["50%", "50%"],
       data: linhas.map((l, i) => ({
         name: l.c, value: l.v,
-        itemStyle: { color: [CORES.roubos, CORES.furtos, CORES.genero, CORES.letais, "#5b8a72", "#7d6b9e", "#8a8f66", "#4a708a"][i % 8] },
+        // tons do tricolor: vermelhos, vinhos, pratas e brancos
+        itemStyle: { color: ["#e8112d", "#9aa5b1", "#a41220", "#f5f6f8", "#ff5147", "#6b737d", "#7c0e18", "#c9d0d8"][i % 8] },
       })),
-      label: { color: "#9db0c0", fontSize: 10.5, formatter: "{b}" },
-      labelLine: { lineStyle: { color: "#39434f" } },
-      itemStyle: { borderColor: "#1b2129", borderWidth: 2 },
+      label: { color: "#a9adb4", fontSize: 10.5, formatter: "{b}" },
+      labelLine: { lineStyle: { color: "#2c2e33" } },
+      itemStyle: { borderColor: "#161719", borderWidth: 2 },
     }],
   }, true);
 }

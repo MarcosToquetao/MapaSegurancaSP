@@ -6,19 +6,19 @@ export const TEMA = {
     animation: !SEM_MOVIMENTO,
     textStyle: { fontFamily: "Archivo, sans-serif" },
     tooltip: {
-      backgroundColor: "#1b2129",
-      borderColor: "#303a46",
-      textStyle: { color: "#eef2f6", fontSize: 12 },
+      backgroundColor: "#161719",
+      borderColor: "#2c2e33",
+      textStyle: { color: "#f5f6f7", fontSize: 12 },
     },
   },
   eixoX: {
-    axisLabel: { color: "#6a7c8c", fontSize: 10, fontFamily: "IBM Plex Mono, monospace" },
-    axisLine: { lineStyle: { color: "#303a46" } },
+    axisLabel: { color: "#6f747c", fontSize: 10, fontFamily: "IBM Plex Mono, monospace" },
+    axisLine: { lineStyle: { color: "#2c2e33" } },
     axisTick: { show: false },
   },
   eixoY: {
-    axisLabel: { color: "#6a7c8c", fontSize: 10, fontFamily: "IBM Plex Mono, monospace" },
-    splitLine: { lineStyle: { color: "#232b35" } },
+    axisLabel: { color: "#6f747c", fontSize: 10, fontFamily: "IBM Plex Mono, monospace" },
+    splitLine: { lineStyle: { color: "#1f2124" } },
   },
 };
 

@@ -4,20 +4,23 @@ import { dados, CORES, fmt } from "./estado.js";
 import { TEMA, grafico, rotuloMes, mediaMovel } from "./tema-grafico.js";
 
 // séries oferecidas: naturezas oficiais + condutas com leitura cidadã
+// cores: tons do tricolor preto/vermelho/branco (vermelhos, vinhos, pratas, brancos)
 const CATALOGO = [
+  { id: "ROUBO DE CELULAR", rotulo: "Roubo de celular", cor: CORES.celular, tipo: "nat" },
+  { id: "FURTO DE CELULAR", rotulo: "Furto de celular", cor: "#ff8d85", tipo: "nat" },
   { id: "HOMICÍDIO DOLOSO", rotulo: "Homicídio doloso", cor: CORES.letais, tipo: "nat" },
-  { id: "LATROCÍNIO", rotulo: "Latrocínio", cor: "#d94f6b", tipo: "nat" },
+  { id: "LATROCÍNIO", rotulo: "Latrocínio", cor: "#7c0e18", tipo: "nat" },
   { id: "ROUBO - OUTROS", rotulo: "Roubo (geral)", cor: CORES.roubos, tipo: "nat" },
-  { id: "ROUBO DE VEÍCULO", rotulo: "Roubo de veículo", cor: "#e09a2f", tipo: "nat" },
-  { id: "roubos::Transeunte", rotulo: "Roubo a transeunte*", cor: "#ffd28a", tipo: "conduta" },
+  { id: "ROUBO DE VEÍCULO", rotulo: "Roubo de veículo", cor: "#d3404d", tipo: "nat" },
+  { id: "roubos::Transeunte", rotulo: "Roubo a transeunte*", cor: "#e9848d", tipo: "conduta" },
   { id: "FURTO - OUTROS", rotulo: "Furto (geral)", cor: CORES.furtos, tipo: "nat" },
-  { id: "FURTO DE VEÍCULO", rotulo: "Furto de veículo", cor: "#2e9096", tipo: "nat" },
-  { id: "furtos::Transeunte", rotulo: "Furto a transeunte*", cor: "#9adfe2", tipo: "conduta" },
+  { id: "FURTO DE VEÍCULO", rotulo: "Furto de veículo", cor: "#6b737d", tipo: "nat" },
+  { id: "furtos::Transeunte", rotulo: "Furto a transeunte*", cor: "#c9d0d8", tipo: "conduta" },
   { id: "ESTUPRO", rotulo: "Estupro", cor: CORES.genero, tipo: "nat" },
-  { id: "ESTUPRO DE VULNERÁVEL", rotulo: "Estupro de vulnerável", cor: "#8a63d2", tipo: "nat" },
+  { id: "ESTUPRO DE VULNERÁVEL", rotulo: "Estupro de vulnerável", cor: "#b9bfc7", tipo: "nat" },
 ];
 
-const ativas = new Set(["HOMICÍDIO DOLOSO", "ROUBO - OUTROS", "FURTO - OUTROS", "ROUBO DE VEÍCULO"]);
+const ativas = new Set(["ROUBO DE CELULAR", "FURTO DE CELULAR", "HOMICÍDIO DOLOSO", "ROUBO - OUTROS"]);
 let usarMM = true;
 let gPrincipal;
 const gMultiplos = new Map();
@@ -88,7 +91,7 @@ function renderPrincipal() {
     tooltip: { ...TEMA.base.tooltip, trigger: "axis" },
     legend: {
       top: 0, left: 0, icon: "roundRect", itemWidth: 14, itemHeight: 4,
-      textStyle: { color: "#9db0c0", fontSize: 11 },
+      textStyle: { color: "#a9adb4", fontSize: 11 },
       data: CATALOGO.filter((s) => ativas.has(s.id)).map((s) => s.rotulo),
     },
     xAxis: { type: "category", data: rotulos, ...TEMA.eixoX },

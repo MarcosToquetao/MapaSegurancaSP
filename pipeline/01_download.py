@@ -16,25 +16,41 @@ from pathlib import Path
 import requests
 
 RAW_DIR = Path(__file__).resolve().parent.parent / "data" / "raw"
-URL = "https://www.ssp.sp.gov.br/assets/estatistica/transparencia/spDados/SPDadosCriminais_{ano}.xlsx"
+BASES = {
+    # base principal de ocorrências (microdados por BO)
+    "SPDadosCriminais": "https://www.ssp.sp.gov.br/assets/estatistica/transparencia/spDados/SPDadosCriminais_{ano}.xlsx",
+    # celulares subtraídos (todos os BOs com >=1 celular levado; existe desde 2017)
+    # endpoint descoberto via manifesto assets/estatistica/transparencia/baseDadosCelVeiEObjSub.json
+    "CelularesSubtraidos": "https://www.ssp.sp.gov.br/assets/estatistica/transparencia/baseDados/celularesSub/CelularesSubtraidos_{ano}.xlsx",
+}
 ANOS_DISPONIVEIS = [2022, 2023, 2024, 2025, 2026]
 CHUNK = 1 << 20  # 1 MB
 
 
-def baixar(ano: int, tentativas: int = 8) -> None:
-    url = URL.format(ano=ano)
-    destino = RAW_DIR / f"SPDadosCriminais_{ano}.xlsx"
+def baixar(base: str, ano: int, tentativas: int = 8) -> None:
+    url = BASES[base].format(ano=ano)
+    destino = RAW_DIR / f"{base}_{ano}.xlsx"
     tmp = destino.with_suffix(".part")
 
-    head = requests.head(url, timeout=60)
-    head.raise_for_status()
-    tamanho_remoto = int(head.headers.get("Content-Length", 0))
+    tamanho_remoto = 0
+    for tentativa in range(1, tentativas + 1):
+        try:
+            head = requests.head(url, timeout=60)
+            head.raise_for_status()
+            tamanho_remoto = int(head.headers.get("Content-Length", 0))
+            break
+        except requests.exceptions.RequestException as e:
+            print(f"[{base} {ano}] HEAD falhou ({type(e).__name__}); "
+                  f"nova tentativa em {10 * tentativa}s", flush=True)
+            time.sleep(10 * tentativa)
+    else:
+        raise RuntimeError(f"[{base} {ano}] HEAD falhou após {tentativas} tentativas")
 
     if destino.exists() and destino.stat().st_size == tamanho_remoto:
-        print(f"[{ano}] ok (já baixado, {tamanho_remoto/1e6:.0f} MB)", flush=True)
+        print(f"[{base} {ano}] ok (já baixado, {tamanho_remoto/1e6:.0f} MB)", flush=True)
         return
 
-    print(f"[{ano}] baixando {tamanho_remoto/1e6:.0f} MB ...", flush=True)
+    print(f"[{base} {ano}] baixando {tamanho_remoto/1e6:.0f} MB ...", flush=True)
     for tentativa in range(1, tentativas + 1):
         ja_tem = tmp.stat().st_size if tmp.exists() else 0
         if ja_tem >= tamanho_remoto:
@@ -50,23 +66,24 @@ def baixar(ano: int, tentativas: int = 8) -> None:
             break
         except (requests.exceptions.RequestException, OSError) as e:
             pct = tmp.stat().st_size / tamanho_remoto * 100 if tmp.exists() else 0
-            print(f"[{ano}] queda na tentativa {tentativa} ({pct:.0f}% baixado): "
+            print(f"[{base} {ano}] queda na tentativa {tentativa} ({pct:.0f}% baixado): "
                   f"{type(e).__name__}; retomando em {10 * tentativa}s", flush=True)
             time.sleep(10 * tentativa)
     else:
-        raise RuntimeError(f"[{ano}] falhou após {tentativas} tentativas")
+        raise RuntimeError(f"[{base} {ano}] falhou após {tentativas} tentativas")
 
     if tmp.stat().st_size != tamanho_remoto:
-        raise RuntimeError(f"[{ano}] tamanho final inesperado: {tmp.stat().st_size} != {tamanho_remoto}")
+        raise RuntimeError(f"[{base} {ano}] tamanho final inesperado: {tmp.stat().st_size} != {tamanho_remoto}")
     tmp.replace(destino)
-    print(f"[{ano}] concluído -> {destino.name}", flush=True)
+    print(f"[{base} {ano}] concluído -> {destino.name}", flush=True)
 
 
 def main() -> None:
     RAW_DIR.mkdir(parents=True, exist_ok=True)
     anos = [int(a) for a in sys.argv[1:]] or ANOS_DISPONIVEIS
-    for ano in anos:
-        baixar(ano)
+    for base in BASES:
+        for ano in anos:
+            baixar(base, ano)
 
 
 if __name__ == "__main__":
