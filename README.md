@@ -9,7 +9,10 @@ ocorrências** (nível de rua). Ferramenta cidadã + vitrine técnica.
 
 ## Status
 
-🚧 Fase 0 — estruturação. Ver [docs/PLANO.md](docs/PLANO.md).
+🟢 **No ar**: https://marcostoquetao.github.io/MapaSegurancaSP/
+
+MVP com dados de jan/2022 a mai/2026 (~2 milhões de ocorrências da capital).
+Atualização automática mensal via GitHub Actions. Plano completo em [docs/PLANO.md](docs/PLANO.md).
 
 ## Escopo do MVP
 
