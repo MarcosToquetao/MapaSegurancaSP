@@ -7,7 +7,15 @@ import {
 import { TEMA, grafico, rotuloMes } from "./tema-grafico.js";
 
 // filtros próprios da aba (não interferem no mapa)
-const f = { categoria: "celular", natureza: null, sub: null, ano: null };
+// regiao: null = cidade | "s:ID" subprefeitura | "d:CD" distrito
+const f = { categoria: "celular", natureza: null, regiao: null, ano: null };
+
+/** dados da região selecionada: {nome, pop, cat, nat} ou null (cidade) */
+function regiaoSel() {
+  if (!f.regiao) return null;
+  const [tipo, id] = f.regiao.split(":");
+  return tipo === "s" ? dados.agg.subs[id] : dados.agg.distritos[id];
+}
 let gEvolucao, gRanking, gNaturezas, gCondutas;
 
 export function initPainel() {
@@ -26,12 +34,10 @@ const idxAno = (ano) =>
 
 const soma = (serie, idx) => (serie ? idx.reduce((s, i) => s + serie[i], 0) : 0);
 
-/** série da seleção atual (cidade ou subprefeitura) */
+/** série da seleção atual (cidade, subprefeitura ou distrito) */
 function serieSelecao() {
-  if (f.sub) {
-    const s = dados.agg.subs[f.sub];
-    return f.natureza ? s.nat[f.natureza] : s.cat[f.categoria];
-  }
+  const r = regiaoSel();
+  if (r) return f.natureza ? r.nat[f.natureza] : r.cat[f.categoria];
   const c = dados.agg.cidade;
   return f.natureza ? c.por_natureza[f.natureza] : c.por_categoria[f.categoria];
 }
@@ -55,10 +61,14 @@ function initFiltros() {
   });
 
   const elSub = document.getElementById("p-sub");
-  const subs = Object.entries(dados.agg.subs).sort((a, b) => a[1].nome.localeCompare(b[1].nome));
+  const ordena = (obj) => Object.entries(obj).sort((a, b) => a[1].nome.localeCompare(b[1].nome));
   elSub.innerHTML = `<option value="">Cidade inteira</option>` +
-    subs.map(([id, s]) => `<option value="${id}">${s.nome}</option>`).join("");
-  elSub.addEventListener("change", (e) => { f.sub = e.target.value || null; render(); });
+    `<optgroup label="Subprefeituras (32)">` +
+    ordena(dados.agg.subs).map(([id, s]) => `<option value="s:${id}">${s.nome}</option>`).join("") +
+    `</optgroup><optgroup label="Distritos (96)">` +
+    ordena(dados.agg.distritos).map(([cd, d]) => `<option value="d:${cd}">${d.nome}</option>`).join("") +
+    `</optgroup>`;
+  elSub.addEventListener("change", (e) => { f.regiao = e.target.value || null; render(); });
 
   const elAno = document.getElementById("p-ano");
   elAno.innerHTML = anosDisponiveis().reverse().map((a) => `<option>${a}</option>`).join("");
@@ -79,7 +89,7 @@ function render() {
   renderNaturezas();
   renderCondutas();
   document.getElementById("p-titulo-contexto").textContent =
-    `· ${f.sub ? dados.agg.subs[f.sub].nome : "cidade"} · série completa`;
+    `· ${regiaoSel()?.nome ?? "cidade"} · série completa`;
 }
 
 function renderKpis() {
@@ -94,7 +104,7 @@ function renderKpis() {
   const totalAnt = soma(serie, idxAnt);
   const delta = totalAnt ? ((total - totalAnt) / totalAnt) * 100 : null;
 
-  const pop = f.sub ? dados.agg.subs[f.sub].pop : 11451999;
+  const pop = regiaoSel()?.pop ?? 11451999;
   const taxa = taxa100k(total, pop, idx);
 
   document.getElementById("p-kpis").innerHTML = `
@@ -172,7 +182,7 @@ function renderRanking() {
 
 function renderNaturezas() {
   const idx = idxAno(f.ano);
-  const fonte = f.sub ? dados.agg.subs[f.sub].nat : dados.agg.cidade.por_natureza;
+  const fonte = regiaoSel()?.nat ?? dados.agg.cidade.por_natureza;
   const linhas = dados.agg.naturezas[f.categoria]
     .map((n) => ({ n, v: soma(fonte[n], idx) }))
     .filter((l) => l.v > 0)

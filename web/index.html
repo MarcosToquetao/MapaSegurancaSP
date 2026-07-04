@@ -20,6 +20,7 @@
         <button role="tab" data-aba="mapa" aria-selected="true">Mapa</button>
         <button role="tab" data-aba="painel" aria-selected="false">Painel</button>
         <button role="tab" data-aba="series" aria-selected="false">Séries</button>
+        <button role="tab" data-aba="horarios" aria-selected="false">Horários</button>
       </nav>
       <p class="fonte-dados">Fonte: SSP-SP · Censo 2022</p>
     </header>
@@ -29,14 +30,20 @@
       <div id="mapa"></div>
 
       <aside id="controles-mapa" class="flutuante">
+        <p class="rotulo-grupo">Onde</p>
+        <div class="busca-caixa">
+          <input id="m-busca" type="search" placeholder="rua ou CEP…" autocomplete="off"
+                 aria-label="Buscar rua ou CEP" />
+          <ul id="m-busca-resultados"></ul>
+        </div>
         <p class="rotulo-grupo">O quê</p>
-        <div id="m-categorias" class="chips"></div>
-        <select id="m-natureza" aria-label="Natureza da ocorrência"></select>
+        <div id="m-grupos" class="chips"></div>
         <p class="rotulo-grupo">Quando</p>
         <div class="linha-controles">
           <select id="m-ano" aria-label="Ano"></select>
           <select id="m-mes" aria-label="Mês"></select>
         </div>
+        <div id="m-periodo" class="chips" aria-label="Período do dia"></div>
         <p class="rotulo-grupo">Como contar</p>
         <div id="m-metrica" class="chips">
           <button data-metrica="taxa" class="ativo">taxa /100k</button>
@@ -46,6 +53,10 @@
         <p class="nota aviso" id="m-aviso-genero" hidden>
           Violência sexual tem o endereço anonimizado por lei — aparece no agregado
           por distrito, não como pontos.
+        </p>
+        <p class="nota aviso" id="m-aviso-periodo" hidden>
+          O filtro de horário vale para o mapa de pontos e o heatmap; o agregado
+          por distrito segue mostrando o período inteiro.
         </p>
       </aside>
 
@@ -105,6 +116,31 @@
           um celular levado, consumados) e se sobrepõe parcialmente a roubos/furtos gerais.
           *Transeunte = circunstância de crime de rua, recorte dos roubos/furtos gerais.
         </p>
+      </div>
+    </section>
+
+    <!-- ABA 4 · HORÁRIOS -->
+    <section id="view-horarios" class="view" role="tabpanel" hidden>
+      <div class="miolo">
+        <div class="barra-filtros">
+          <div id="h-grupos" class="chips"></div>
+        </div>
+        <div class="grade-cartoes">
+          <article class="cartao largo">
+            <h2>Quando acontece <span class="sufixo" id="h-contexto"></span></h2>
+            <div id="h-semana" class="grafico grande"></div>
+          </article>
+          <article class="cartao">
+            <h2>Perfil de 24 horas</h2>
+            <div id="h-perfil" class="grafico"></div>
+          </article>
+          <article class="cartao">
+            <h2>Distritos mais perigosos <span class="sufixo" id="h-ranking-sufixo"></span></h2>
+            <div class="chips" id="h-periodos"></div>
+            <div id="h-ranking" class="grafico" style="height:220px"></div>
+          </article>
+        </div>
+        <p class="nota" id="h-cobertura"></p>
       </div>
     </section>
   </div>

@@ -50,20 +50,45 @@ def series_por(df: pd.DataFrame, chaves: list[str], pos: dict, n_meses: int) -> 
     return out
 
 
+# DESC_PERIODO textual → período 0..3 (madrugada, manhã, tarde, noite)
+PERIODO_TXT = {
+    "De madrugada": 0, "Pela manhã": 1, "A tarde": 2, "A noite": 3,
+}
+
+
+def derivar_tempo(df: pd.DataFrame) -> pd.DataFrame:
+    """Deriva hora (0-23), periodo (0-3) e diasemana (0=seg) por registro."""
+    hora_txt = df["HORA_OCORRENCIA_BO"].astype("string").str.extract(r"^(\d{1,2})", expand=False)
+    df["hora"] = pd.to_numeric(hora_txt, errors="coerce")
+    df.loc[~df["hora"].between(0, 23), "hora"] = pd.NA
+
+    df["periodo"] = (df["hora"] // 6).astype("Int64")  # 0-5→0, 6-11→1, 12-17→2, 18-23→3
+    sem_hora = df["periodo"].isna()
+    df.loc[sem_hora, "periodo"] = df.loc[sem_hora, "DESC_PERIODO"].map(PERIODO_TXT).astype("Int64")
+    return df
+
+
 def main() -> None:
     arquivos = sorted(list(PROC.glob("ocorrencias_*.parquet")) +
                       list(PROC.glob("celulares_*.parquet")))
-    df = pd.concat(
-        (pd.read_parquet(a, columns=[
+
+    def ler(a):
+        d = pd.read_parquet(a, columns=[
             "categoria", "NATUREZA_APURADA", "DESCR_CONDUTA", "cd_distrito",
             "id_subprefeitura", "ANO_ESTATISTICA", "MES_ESTATISTICA",
-        ]) for a in arquivos),
-        ignore_index=True,
-    )
+            "HORA_OCORRENCIA_BO", "DESC_PERIODO", "DATA_OCORRENCIA_BO",
+        ])
+        # dia-da-semana derivado por arquivo: coerção protege contra datas
+        # digitadas erradas na fonte (ex.: ano 1202), que estouram o concat
+        d["diasemana"] = pd.to_datetime(d["DATA_OCORRENCIA_BO"], errors="coerce").dt.dayofweek
+        return d.drop(columns=["DATA_OCORRENCIA_BO"])
+
+    df = pd.concat((ler(a) for a in arquivos), ignore_index=True)
     df["mes"] = (
         df["ANO_ESTATISTICA"].astype(str) + "-" +
         df["MES_ESTATISTICA"].astype(int).astype(str).str.zfill(2)
     )
+    df = derivar_tempo(df)
     meses = sorted(df["mes"].unique())
     pos = {m: i for i, m in enumerate(meses)}
     nm = len(meses)
@@ -83,11 +108,20 @@ def main() -> None:
         ),
     }
 
+    gj_d = json.load(open(WEB_DATA / "distritos.geojson", encoding="utf-8"))
+    info_dist = {
+        str(f["properties"]["cd_distrito"]): {
+            "nome": f["properties"]["nome"].title(),
+            "pop": int(f["properties"]["pop_2022"] or 0),
+        }
+        for f in gj_d["features"]
+    }
     com_d = df[df["cd_distrito"].notna()]
     distritos_cat = series_por(com_d, ["cd_distrito", "categoria"], pos, nm)
     distritos_nat = series_por(com_d, ["cd_distrito", "NATUREZA_APURADA"], pos, nm)
     distritos = {
-        cd: {"cat": distritos_cat.get(cd, {}), "nat": distritos_nat.get(cd, {})}
+        cd: {**info_dist.get(cd, {"nome": cd, "pop": 0}),
+             "cat": distritos_cat.get(cd, {}), "nat": distritos_nat.get(cd, {})}
         for cd in distritos_cat
     }
 
@@ -109,6 +143,32 @@ def main() -> None:
         for sid in subs_cat
     }
 
+    # ---- dimensão horário (série completa 2022–2026) ----
+    def vetor_por(sub: pd.DataFrame, col: str, tam: int) -> dict:
+        out = {}
+        for (nat, v), n in sub.groupby(["NATUREZA_APURADA", col]).size().items():
+            out.setdefault(nat, [0] * tam)[int(v)] = int(n)
+        return out
+
+    com_hora = df[df["hora"].notna()].copy()
+    com_hora["slot"] = com_hora["diasemana"] * 24 + com_hora["hora"]
+    com_per = df[df["periodo"].notna()]
+
+    dist_per = {}
+    for (cd, nat, p), n in (
+        com_per[com_per["cd_distrito"].notna()]
+        .groupby(["cd_distrito", "NATUREZA_APURADA", "periodo"]).size().items()
+    ):
+        dist_per.setdefault(str(cd), {}).setdefault(nat, [0, 0, 0, 0])[int(p)] = int(n)
+
+    horarios = {
+        "hora": vetor_por(com_hora, "hora", 24),
+        "semana": vetor_por(com_hora.dropna(subset=["diasemana"]), "slot", 168),
+        "distrito_periodo": dist_per,
+        "cobertura_hora": round(float(df["hora"].notna().mean()), 3),
+        "cobertura_periodo": round(float(df["periodo"].notna().mean()), 3),
+    }
+
     agg = {
         "meses": meses,
         "categorias": CATEGORIAS,
@@ -116,6 +176,7 @@ def main() -> None:
         "cidade": cidade,
         "distritos": distritos,
         "subs": subs,
+        "horarios": horarios,
     }
     WEB_DATA.mkdir(parents=True, exist_ok=True)
     destino = WEB_DATA / "agg.json"

@@ -53,6 +53,7 @@ def carregar_pontos() -> pd.DataFrame:
         (pd.read_parquet(a, columns=[
             "categoria", "NATUREZA_APURADA", "LATITUDE", "LONGITUDE",
             "ANO_ESTATISTICA", "MES_ESTATISTICA",
+            "HORA_OCORRENCIA_BO", "DESC_PERIODO",
         ]) for a in arquivos),
         ignore_index=True,
     ).dropna(subset=["LATITUDE", "LONGITUDE"])
@@ -60,6 +61,16 @@ def carregar_pontos() -> pd.DataFrame:
         df["ANO_ESTATISTICA"].astype(str) + "-" +
         df["MES_ESTATISTICA"].astype(int).astype(str).str.zfill(2)
     )
+    # período 0-3 (madrugada/manhã/tarde/noite); 4 = desconhecido — mesmo critério do 04_aggregate
+    hora = pd.to_numeric(
+        df["HORA_OCORRENCIA_BO"].astype("string").str.extract(r"^(\d{1,2})", expand=False),
+        errors="coerce",
+    )
+    hora[~hora.between(0, 23)] = pd.NA
+    periodo = (hora // 6).astype("Int64")
+    txt = {"De madrugada": 0, "Pela manhã": 1, "A tarde": 2, "A noite": 3}
+    periodo = periodo.fillna(df["DESC_PERIODO"].map(txt).astype("Int64"))
+    df["periodo"] = periodo.fillna(4).astype(int)
     return df
 
 
@@ -77,13 +88,14 @@ def main() -> None:
         df["categoria"].map(c_idx).to_numpy(),
         df["NATUREZA_APURADA"].map(n_idx).to_numpy(),
         df["mes"].map(m_idx).to_numpy(),
+        df["periodo"].to_numpy(),
     )
 
     tiles: dict[tuple[int, int, int], list] = defaultdict(list)
     for z in range(MINZOOM, MAXZOOM + 1):
-        for lon, lat, c, n, m in zip(*cols):
+        for lon, lat, c, n, m, p in zip(*cols):
             xt, yt, px, py = lonlat_para_tile(lon, lat, z)
-            tiles[(z, xt, yt)].append((px, py, int(c), int(n), int(m)))
+            tiles[(z, xt, yt)].append((px, py, int(c), int(n), int(m), int(p)))
 
     print(f"{len(tiles):,} tiles a codificar")
     destino = WEB_DATA / "ocorrencias.pmtiles"
@@ -98,23 +110,25 @@ def main() -> None:
             pontos = tiles[(z, xt, yt)]
             feats = []
             if z == MAXZOOM:
-                for px, py, c, n, m in pontos:
+                for px, py, c, n, m, p in pontos:
                     feats.append({
                         "geometry": {"type": "Point", "coordinates": [round(px), round(py)]},
-                        "properties": {"c": c, "n": n, "m": m, "w": 1},
+                        "properties": {"c": c, "n": n, "m": m, "p": p, "w": 1},
                     })
             else:
                 por_cat = defaultdict(list)
-                for p in pontos:
-                    por_cat[p[2]].append(p)
+                for pt in pontos:
+                    por_cat[pt[2]].append(pt)
                 for c, grupo in por_cat.items():
                     cap = CAP[z]
                     amostra = grupo if len(grupo) <= cap else random.sample(grupo, cap)
                     wfator = len(grupo) / len(amostra)
-                    for px, py, _, n, m in amostra:
+                    # n e p entram em todos os zooms: os filtros natureza-first e
+                    # de período precisam valer também no heatmap de zoom médio
+                    for px, py, _, n, m, p in amostra:
                         feats.append({
                             "geometry": {"type": "Point", "coordinates": [round(px), round(py)]},
-                            "properties": {"c": c, "m": m, "w": round(wfator, 2)},
+                            "properties": {"c": c, "n": n, "m": m, "p": p, "w": round(wfator, 2)},
                         })
             data = mvt_encode(
                 [{"name": "oc", "features": feats}],
@@ -142,7 +156,7 @@ def main() -> None:
                     "id": "oc",
                     "minzoom": MINZOOM,
                     "maxzoom": MAXZOOM,
-                    "fields": {"c": "Number", "n": "Number", "m": "Number", "w": "Number"},
+                    "fields": {"c": "Number", "n": "Number", "m": "Number", "p": "Number", "w": "Number"},
                 }],
             },
         )

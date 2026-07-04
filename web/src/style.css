@@ -119,6 +119,29 @@ select {
 }
 #controles-mapa { top: 14px; left: 14px; width: 250px; }
 #painel-mapa { top: 14px; right: 14px; width: 290px; max-height: calc(100% - 28px); overflow-y: auto; }
+/* busca por rua/CEP */
+.busca-caixa { position: relative; }
+.busca-caixa input {
+  width: 100%; font: inherit; color: var(--texto);
+  background: var(--garoa-2); border: 1px solid var(--linha);
+  border-radius: 7px; padding: 7px 9px;
+}
+.busca-caixa input::placeholder { color: var(--texto-3); }
+#m-busca-resultados {
+  list-style: none; padding: 0; margin: 4px 0 0;
+  position: absolute; left: 0; right: 0; z-index: 30;
+  background: var(--garoa-1); border: 1px solid var(--linha); border-radius: 7px;
+  overflow: hidden; box-shadow: var(--sombra);
+}
+#m-busca-resultados:empty { display: none; }
+#m-busca-resultados li {
+  padding: 7px 10px; font-size: 12px; cursor: pointer;
+  border-top: 1px solid var(--linha);
+}
+#m-busca-resultados li:first-child { border-top: 0; }
+#m-busca-resultados li:hover { background: var(--garoa-2); }
+#m-busca-resultados li.buscando { color: var(--texto-3); cursor: default; }
+
 .linha-controles { display: flex; gap: 6px; }
 .linha-controles select { flex: 1; }
 #controles-mapa select { width: 100%; margin-top: 2px; }

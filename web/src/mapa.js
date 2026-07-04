@@ -2,7 +2,7 @@
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import {
-  estado, dados, mudar, aoMudar, ROTULOS, CORES, ORDEM_CHIPS,
+  estado, dados, mudar, aoMudar, ROTULOS, CORES, GRUPOS, grupoAtivo, PERIODOS_DIA,
   contagemPorDistrito, indicesPeriodo, somaPeriodo, serieCidade, taxa100k,
   anosDisponiveis, fmt, fmt1,
 } from "./estado.js";
@@ -10,9 +10,9 @@ import {
 const ZOOM_PONTOS = 12.5;
 let mapa;
 
-// rampa preto→cor da categoria (o coroplético muda de pele com a categoria)
+// rampa preto→cor do grupo ativo (o coroplético muda de pele com a seleção)
 function rampa() {
-  const cor = CORES[estado.categoria];
+  const cor = grupoAtivo()?.cor ?? CORES[estado.categoria];
   return ["#17181b", "#232427", mistura(cor, 0.35), mistura(cor, 0.6), mistura(cor, 0.82), cor];
 }
 function mistura(hex, t) {
@@ -92,7 +92,7 @@ function popupsDistrito() {
     const rotuloPeriodo = estado.mes ? `${estado.mes}/${estado.ano}` : estado.ano;
     popup.setLngLat(e.lngLat).setHTML(
       `<strong>${titulo(f.properties.nome)}</strong><br>` +
-      `${estado.natureza ?? ROTULOS[estado.categoria]} · ${rotuloPeriodo}<br>` +
+      `${grupoAtivo()?.rotulo ?? ROTULOS[estado.categoria]} · ${rotuloPeriodo}<br>` +
       `<span class="num">${fmt.format(n)}</span> ocorrências` +
       (t != null ? ` · <span class="num">${fmt1.format(t)}</span>/100k hab./ano` : "")
     ).addTo(mapa);
@@ -113,7 +113,10 @@ function filtroPontos() {
   ];
   if (estado.natureza) {
     const nIdx = meta.naturezas.indexOf(estado.natureza);
-    filtro.push(["any", ["!", ["has", "n"]], ["==", ["get", "n"], nIdx]]);
+    filtro.push(["==", ["get", "n"], nIdx]);
+  }
+  if (estado.periodoDia != null) {
+    filtro.push(["==", ["get", "p"], estado.periodoDia]);
   }
   return filtro;
 }
@@ -191,21 +194,17 @@ function atualizarFiltroPontos() {
 
 /* ---------------- controles + painel lateral ---------------- */
 function initControles() {
-  const elCat = document.getElementById("m-categorias");
-  elCat.innerHTML = ORDEM_CHIPS.filter((c) => dados.agg.categorias.includes(c)).map((c) =>
-    `<button data-cat="${c}" style="--cor-chip:${CORES[c]}" class="${c === estado.categoria ? "ativo" : ""}">${ROTULOS[c]}</button>`
+  const elGrupos = document.getElementById("m-grupos");
+  elGrupos.innerHTML = GRUPOS.map((g) =>
+    `<button data-grupo="${g.id}" style="--cor-chip:${g.cor}" class="${g.id === estado.grupo ? "ativo" : ""}">${g.rotulo}</button>`
   ).join("");
-  elCat.addEventListener("click", (e) => {
+  elGrupos.addEventListener("click", (e) => {
     const b = e.target.closest("button");
     if (!b) return;
-    elCat.querySelectorAll("button").forEach((x) => x.classList.toggle("ativo", x === b));
-    preencherNaturezas();
-    mudar({ categoria: b.dataset.cat, natureza: null });
+    elGrupos.querySelectorAll("button").forEach((x) => x.classList.toggle("ativo", x === b));
+    const g = GRUPOS.find((x) => x.id === b.dataset.grupo);
+    mudar({ grupo: g.id, categoria: g.cat, natureza: g.nat });
   });
-
-  preencherNaturezas();
-  document.getElementById("m-natureza").addEventListener("change", (e) =>
-    mudar({ natureza: e.target.value || null }));
 
   const elAno = document.getElementById("m-ano");
   const anos = anosDisponiveis().reverse();
@@ -219,6 +218,16 @@ function initControles() {
     nomes.map((n, i) => `<option value="${String(i + 1).padStart(2, "0")}">${n}</option>`).join("");
   elMes.addEventListener("change", () => mudar({ mes: elMes.value || null }));
 
+  const elPer = document.getElementById("m-periodo");
+  elPer.innerHTML = `<button data-p="" class="ativo">qualquer</button>` +
+    PERIODOS_DIA.map((p, i) => `<button data-p="${i}">${p}</button>`).join("");
+  elPer.addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (!b) return;
+    elPer.querySelectorAll("button").forEach((x) => x.classList.toggle("ativo", x === b));
+    mudar({ periodoDia: b.dataset.p === "" ? null : +b.dataset.p });
+  });
+
   document.getElementById("m-metrica").addEventListener("click", (e) => {
     const b = e.target.closest("button");
     if (!b) return;
@@ -226,15 +235,68 @@ function initControles() {
     mudar({ metrica: b.dataset.metrica });
   });
 
+  initBusca();
+
   aoMudar(() => {
     document.getElementById("m-aviso-genero").hidden = estado.categoria !== "genero";
+    document.getElementById("m-aviso-periodo").hidden = estado.periodoDia == null;
   });
 }
 
-function preencherNaturezas() {
-  const el = document.getElementById("m-natureza");
-  el.innerHTML = `<option value="">todas as naturezas</option>` +
-    dados.agg.naturezas[estado.categoria].map((n) => `<option value="${n}">${titulo(n)}</option>`).join("");
+/* ---------------- busca por rua / CEP ---------------- */
+let marcadorBusca = null;
+
+async function geocodificar(consulta) {
+  const cep = consulta.replace(/\D/g, "");
+  if (/^\d{8}$/.test(cep)) {
+    const r = await fetch(`https://viacep.com.br/ws/${cep}/json/`).then((x) => x.json());
+    if (r.erro || !r.logradouro) return [];
+    consulta = `${r.logradouro}, ${r.bairro ?? ""}, ${r.localidade}`;
+  }
+  // Nominatim (OSM) restrito à caixa da capital
+  const url = "https://nominatim.openstreetmap.org/search?" + new URLSearchParams({
+    q: consulta, format: "json", limit: "5", countrycodes: "br",
+    viewbox: "-46.85,-23.35,-46.36,-24.01", bounded: "1",
+  });
+  const r = await fetch(url, { headers: { "Accept-Language": "pt-BR" } }).then((x) => x.json());
+  return r.map((f) => ({ nome: f.display_name.split(",").slice(0, 3).join(","), lon: +f.lon, lat: +f.lat }));
+}
+
+function initBusca() {
+  const campo = document.getElementById("m-busca");
+  const lista = document.getElementById("m-busca-resultados");
+  let controle = 0;
+
+  async function buscar() {
+    const q = campo.value.trim();
+    if (q.length < 3) { lista.innerHTML = ""; return; }
+    const id = ++controle;
+    lista.innerHTML = `<li class="buscando">buscando…</li>`;
+    try {
+      const res = await geocodificar(q);
+      if (id !== controle) return; // resposta antiga
+      lista.innerHTML = res.length
+        ? res.map((r, i) => `<li data-i="${i}" data-lon="${r.lon}" data-lat="${r.lat}">${r.nome}</li>`).join("")
+        : `<li class="buscando">nada encontrado em São Paulo</li>`;
+    } catch {
+      if (id === controle) lista.innerHTML = `<li class="buscando">busca indisponível agora</li>`;
+    }
+  }
+
+  let timer;
+  campo.addEventListener("input", () => { clearTimeout(timer); timer = setTimeout(buscar, 450); });
+  campo.addEventListener("keydown", (e) => { if (e.key === "Enter") { clearTimeout(timer); buscar(); } });
+
+  lista.addEventListener("click", (e) => {
+    const li = e.target.closest("li[data-lon]");
+    if (!li) return;
+    const lon = +li.dataset.lon, lat = +li.dataset.lat;
+    marcadorBusca?.remove();
+    marcadorBusca = new maplibregl.Marker({ color: "#e8112d" }).setLngLat([lon, lat]).addTo(mapa);
+    mapa.flyTo({ center: [lon, lat], zoom: 15.5 });
+    lista.innerHTML = "";
+    campo.blur();
+  });
 }
 
 function renderPainelLateral() {
@@ -252,10 +314,11 @@ function renderPainelLateral() {
   const totalAnt = idxAnt.length ? somaPeriodo(serie, idxAnt) : 0;
   const delta = totalAnt ? ((total - totalAnt) / totalAnt) * 100 : null;
 
+  const g = grupoAtivo();
   document.getElementById("m-kpis").innerHTML = `
-    <p class="titulo-bloco">${estado.natureza ? titulo(estado.natureza) : ROTULOS[estado.categoria]} · ${estado.mes ? estado.mes + "/" : ""}${estado.ano}</p>
+    <p class="titulo-bloco">${g?.rotulo ?? ROTULOS[estado.categoria]} · ${estado.mes ? estado.mes + "/" : ""}${estado.ano}</p>
     <div class="kpi">
-      <div class="valor" style="color:${CORES[estado.categoria]}">${fmt.format(total)}</div>
+      <div class="valor" style="color:${g?.cor ?? CORES[estado.categoria]}">${fmt.format(total)}</div>
       <div class="kpi-rotulo">ocorrências na cidade
         ${delta != null ? `· <span class="delta ${delta > 0 ? "sobe" : "desce"}">${delta > 0 ? "+" : ""}${fmt1.format(delta)}% vs ${anoAnt}</span>` : ""}
       </div>
