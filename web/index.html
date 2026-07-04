@@ -21,6 +21,7 @@
         <button role="tab" data-aba="painel" aria-selected="false">Painel</button>
         <button role="tab" data-aba="series" aria-selected="false">Séries</button>
         <button role="tab" data-aba="horarios" aria-selected="false">Horários</button>
+        <button role="tab" data-aba="mulheres" aria-selected="false" class="aba-mulheres">Mulheres</button>
       </nav>
       <p class="fonte-dados">Fonte: SSP-SP · Censo 2022</p>
     </header>
@@ -141,6 +142,82 @@
           </article>
         </div>
         <p class="nota" id="h-cobertura"></p>
+      </div>
+    </section>
+
+    <!-- ABA 5 · MULHERES -->
+    <section id="view-mulheres" class="view tema-rosa" role="tabpanel" hidden>
+      <div class="miolo">
+        <header class="w-intro">
+          <h2>Violência doméstica contra mulheres</h2>
+          <p>
+            Registros de vítimas mulheres na cidade de São Paulo desde 2024, da base de
+            violência doméstica da SSP-SP — ameaça, perseguição, lesão corporal, injúria,
+            violência psicológica, patrimonial e descumprimento de medida protetiva.
+            <strong>Todos os números abaixo reagem aos filtros: clique em qualquer
+            barra, fatia ou zona para cruzar variáveis.</strong>
+          </p>
+        </header>
+
+        <div id="w-highlights" class="grade-kpis"></div>
+
+        <div class="barra-filtros w-barra">
+          <div id="w-filtros-ativos" class="chips"></div>
+          <button id="w-filtros-limpar" hidden>limpar filtros</button>
+        </div>
+
+        <div class="grade-cartoes">
+          <article class="cartao">
+            <h2>Registros por macrorregião <span class="sufixo">taxa /100 mil hab.</span></h2>
+            <div id="w-zonas" class="grafico" style="height:320px"></div>
+          </article>
+          <article class="cartao">
+            <h2>Idade da vítima</h2>
+            <div id="w-faixa" class="grafico" style="height:320px"></div>
+          </article>
+          <article class="cartao">
+            <h2>Relação com o agressor</h2>
+            <div id="w-relacao" class="grafico"></div>
+          </article>
+          <article class="cartao">
+            <h2>Tipo de violência <span class="sufixo">tipologia da Lei Maria da Penha</span></h2>
+            <div id="w-grupo" class="grafico"></div>
+          </article>
+          <article class="cartao">
+            <h2>Onde acontece</h2>
+            <div id="w-local" class="grafico"></div>
+          </article>
+          <article class="cartao">
+            <h2>Hora do dia</h2>
+            <div id="w-hora" class="grafico"></div>
+          </article>
+          <article class="cartao">
+            <h2>Orientação sexual declarada</h2>
+            <div id="w-orientacao" class="grafico"></div>
+          </article>
+        </div>
+
+        <footer class="w-rodape">
+          <h3>Limitações e cuidados de leitura</h3>
+          <ul>
+            <li id="w-cobertura"></li>
+            <li>Para proteger as vítimas, a SSP anonimiza endereços em parte dos registros —
+              por isso este painel usa macrorregiões, e não pontos no mapa.</li>
+            <li>Violência doméstica é historicamente <strong>subnotificada</strong>: os números
+              refletem os boletins registrados, não a totalidade dos casos.</li>
+            <li>A base cobre registros a partir de 2024 (criação do recorte pela SSP) e o ano
+              corrente está incompleto.</li>
+            <li>Orientação sexual e identidade de gênero são autodeclaradas e vêm marcadas
+              como "ignorado" em quase metade dos registros.</li>
+            <li>Um mesmo boletim pode conter mais de uma vítima ou natureza; a unidade aqui é
+              o registro de vítima.</li>
+            <li>Estupros não estão nesta base — seguem na categoria "Violência sexual"
+              das demais abas, com endereço anonimizado por lei.</li>
+          </ul>
+          <p>Fontes: SSP-SP (base de vítimas de violência doméstica, atualização mensal) ·
+            população: Censo 2022/IBGE. Em emergência, ligue <strong>190</strong>;
+            denúncias: <strong>180</strong> (Central de Atendimento à Mulher).</p>
+        </footer>
       </div>
     </section>
   </div>

@@ -6,6 +6,7 @@ import { initMapa } from "./mapa.js";
 import { initPainel } from "./painel.js";
 import { initSeries } from "./series.js";
 import { initHorarios } from "./horarios.js";
+import { initMulheres } from "./mulheres.js";
 import "./style.css";
 
 maplibregl.addProtocol("pmtiles", new Protocol().tile);
@@ -31,6 +32,7 @@ function initAbas() {
       if (aba === "painel") initPainel();
       if (aba === "series") initSeries();
       if (aba === "horarios") initHorarios();
+      if (aba === "mulheres") initMulheres();
     }
   });
 }

@@ -232,6 +232,39 @@ select {
 .grade-multiplos .grafico { height: 130px; }
 .grade-multiplos h3 { font-size: 12px; font-weight: 600; color: var(--texto-2); margin-bottom: 4px; }
 
+/* ---------- aba MULHERES (tema rosa: vermelho+branco do tricolor) ---------- */
+.aba-mulheres[aria-selected="true"] { background: #ff5c8a !important; color: #fff !important; }
+.tema-rosa .w-intro { max-width: 720px; margin-bottom: 18px; }
+.tema-rosa .w-intro h2 {
+  font-size: 20px; font-weight: 800; font-stretch: 112%;
+  color: #ffd3e0; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.03em;
+}
+.tema-rosa .w-intro p { color: #b9aeb4; font-size: 13.5px; }
+.tema-rosa .w-intro strong { color: #ffa9c1; }
+.tema-rosa .cartao { border-color: #3a2a30; }
+.tema-rosa .cartao h2 { color: #ffd3e0; }
+.tema-rosa .grade-kpis .kpi { border-color: #3a2a30; }
+.w-barra { border-color: #3a2a30; align-items: center; }
+.w-barra .chips button { border-color: #5c2337; color: #ffa9c1; background: #241a1f; }
+.w-barra .chips button:hover { border-color: #ff5c8a; }
+.w-sem-filtro { color: #6b5f65; font-size: 12px; }
+#w-filtros-limpar {
+  margin-left: auto; background: none; border: 1px solid #5c2337; color: #ffa9c1;
+  border-radius: 999px; padding: 5px 12px; font-size: 12px;
+}
+#w-filtros-limpar:hover { background: #5c2337; color: #fff; }
+.w-rodape {
+  margin-top: 20px; padding: 16px; border: 1px dashed #3a2a30; border-radius: var(--raio);
+  color: #8a7d83; font-size: 12.5px;
+}
+.w-rodape h3 {
+  font-size: 11px; text-transform: uppercase; letter-spacing: 0.14em;
+  color: #b9aeb4; margin-bottom: 8px; font-stretch: 115%;
+}
+.w-rodape ul { padding-left: 18px; display: grid; gap: 4px; }
+.w-rodape strong { color: #ffa9c1; }
+.w-rodape p { margin-top: 10px; }
+
 /* ---------- responsivo ---------- */
 @media (max-width: 900px) {
   #topo { flex-wrap: wrap; gap: 10px; }
