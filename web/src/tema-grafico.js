@@ -22,8 +22,16 @@ export const TEMA = {
   },
 };
 
+// Rampas sequenciais "quanto mais grave, mais escuro/vermelho".
+// Convenção do projeto: baixo = claro/pálido, alto = vermelho profundo (escuro = mais crime).
+export const RAMPA_GRAVE = ["#e6c7cb", "#d1808b", "#bf3a4c", "#8a1421", "#4a0610"];
+export const RAMPA_GRAVE_ROSA = ["#f6d7e1", "#e78bab", "#d1436f", "#9c1c4c", "#54082b"];
+
 export function grafico(echarts, el) {
   const g = echarts.init(el);
+  // o container pode ser medido antes do layout assentar (aba recém-exibida):
+  // re-mede no próximo frame e sempre que o tamanho mudar de fato.
+  requestAnimationFrame(() => g.resize());
   new ResizeObserver(() => g.resize()).observe(el);
   return g;
 }

@@ -222,6 +222,29 @@ select {
 .grafico.grande { height: 380px; }
 .cartao.alto .grafico { height: calc(100% - 30px); min-height: 480px; }
 
+/* ---------- aba PAINEL: crossfilter ---------- */
+.p-intro { max-width: 720px; margin-bottom: 16px; }
+.p-intro h2 {
+  font-size: 20px; font-weight: 800; font-stretch: 112%;
+  text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px;
+}
+.p-intro p { color: var(--texto-2); font-size: 13.5px; }
+.p-intro strong { color: var(--acento); }
+.p-barra { gap: 10px; }
+.p-barra #p-anos { margin-right: auto; }
+#p-filtros-ativos button {
+  background: var(--garoa-2); color: var(--texto);
+  border: 1px solid var(--acento); border-radius: 999px;
+  padding: 5px 11px; font-size: 12px; font-weight: 600;
+}
+#p-filtros-ativos button:hover { background: var(--acento); color: #fff; }
+.p-sem-filtro { color: var(--texto-3); font-size: 12px; }
+#p-limpar {
+  background: none; border: 1px solid var(--linha); color: var(--texto-2);
+  border-radius: 999px; padding: 5px 12px; font-size: 12px;
+}
+#p-limpar:hover { border-color: var(--acento); color: var(--texto); }
+
 /* ---------- aba SÉRIES ---------- */
 .chips.multi button.ativo { background: var(--garoa-2); color: var(--texto); border-color: var(--cor-chip, var(--texto-2)); box-shadow: inset 3px 0 0 var(--cor-chip, var(--texto-2)); }
 .grade-multiplos {

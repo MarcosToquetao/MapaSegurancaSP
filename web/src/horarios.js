@@ -3,7 +3,7 @@
 // Base: série completa 2022–2026 (hora do fato; cobertura em nota).
 import * as echarts from "echarts";
 import { dados, GRUPOS, PERIODOS_DIA, vetorHorarioDoGrupo, fmt, fmt1 } from "./estado.js";
-import { TEMA, grafico } from "./tema-grafico.js";
+import { TEMA, grafico, RAMPA_GRAVE } from "./tema-grafico.js";
 
 const DIAS = ["seg", "ter", "qua", "qui", "sex", "sáb", "dom"];
 const f = { grupo: "celular-roubo", periodo: 3 }; // ranking abre à noite
@@ -76,9 +76,9 @@ function renderSemana() {
     yAxis: { type: "category", data: DIAS, ...TEMA.eixoY, splitLine: { show: false } },
     visualMap: {
       min: 0, max, calculable: false, orient: "vertical", right: 4, top: "center",
-      itemHeight: 120, textStyle: { color: "#6f747c", fontSize: 9 },
-      // rampa de brasa (tricolor): preto → vinho → vermelho → branco
-      inRange: { color: ["#141517", "#4a0b12", "#a41220", "#e8112d", "#ffffff"] },
+      itemHeight: 120, text: ["mais", "menos"], textStyle: { color: "#6f747c", fontSize: 9 },
+      // escuro = mais grave: pálido (poucas ocorrências) → vermelho profundo (pico)
+      inRange: { color: RAMPA_GRAVE },
     },
     series: [{
       type: "heatmap", data: celulas,

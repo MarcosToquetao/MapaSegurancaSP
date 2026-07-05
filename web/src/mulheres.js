@@ -3,7 +3,7 @@
 // todo gráfico é clicável e vira filtro; todo número recalcula na hora.
 import * as echarts from "echarts";
 import { fmt, fmt1 } from "./estado.js";
-import { TEMA, grafico } from "./tema-grafico.js";
+import { TEMA, grafico, RAMPA_GRAVE_ROSA } from "./tema-grafico.js";
 
 // paleta rosa — extensão do tricolor (vermelho+branco), fundo segue preto
 const ROSA = {
@@ -162,7 +162,8 @@ function renderZonas() {
     visualMap: {
       min: 0, max: vmax, orient: "vertical", right: 4, bottom: 8, itemHeight: 90,
       textStyle: { color: "#8a8f98", fontSize: 9 }, text: ["mais", "menos"],
-      inRange: { color: ["#1c1518", "#5c2337", ROSA.profundo, ROSA.medio, ROSA.vivo] },
+      // escuro = mais grave: rosa pálido (menos registros) → vinho profundo (mais)
+      inRange: { color: RAMPA_GRAVE_ROSA },
     },
     series: [{
       type: "map", map: "zonas-sp", roam: false, nameProperty: "nome",

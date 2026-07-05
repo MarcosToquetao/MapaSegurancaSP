@@ -132,9 +132,10 @@ function adicionarPontos() {
       "heatmap-intensity": ["interpolate", ["linear"], ["zoom"], 11, 0.25, 15, 0.9],
       "heatmap-radius": ["interpolate", ["linear"], ["zoom"], 11, 10, 15, 26],
       "heatmap-opacity": ["interpolate", ["linear"], ["zoom"], 14.5, 0.85, 15.5, 0],
-      // brasa: preto → vinho → vermelho → branco (o tricolor em rampa térmica)
+      // escuro = mais grave: quanto maior a densidade, mais forte/profundo o vermelho
+      // (sem branco no topo — o pico é o vermelho mais intenso, não a cor mais clara)
       "heatmap-color": ["interpolate", ["linear"], ["heatmap-density"],
-        0, "rgba(0,0,0,0)", 0.3, "#4a0b12", 0.55, "#a41220", 0.78, "#e8112d", 1, "#ffffff"],
+        0, "rgba(0,0,0,0)", 0.25, "#5c0a14", 0.5, "#8a1421", 0.78, "#bf1327", 1, "#ff1f34"],
     },
   });
 

@@ -39,11 +39,12 @@
         </div>
         <p class="rotulo-grupo">O quê</p>
         <div id="m-grupos" class="chips"></div>
-        <p class="rotulo-grupo">Quando</p>
+        <p class="rotulo-grupo">Quando · mês e ano</p>
         <div class="linha-controles">
           <select id="m-ano" aria-label="Ano"></select>
           <select id="m-mes" aria-label="Mês"></select>
         </div>
+        <p class="rotulo-grupo">Quando · período do dia</p>
         <div id="m-periodo" class="chips" aria-label="Período do dia"></div>
         <p class="rotulo-grupo">Como contar</p>
         <div id="m-metrica" class="chips">
@@ -67,34 +68,53 @@
       </aside>
     </section>
 
-    <!-- ABA 2 · PAINEL -->
+    <!-- ABA 2 · PAINEL (crossfilter) -->
     <section id="view-painel" class="view" role="tabpanel" hidden>
       <div class="miolo">
-        <div id="p-filtros" class="barra-filtros">
-          <div id="p-categorias" class="chips"></div>
-          <select id="p-natureza" aria-label="Natureza"></select>
-          <select id="p-sub" aria-label="Subprefeitura"></select>
-          <select id="p-ano" aria-label="Ano"></select>
+        <header class="p-intro">
+          <h2>Explore os dados</h2>
+          <p>Base principal de ocorrências da cidade de São Paulo (2022–2026).
+            <strong>Clique em qualquer barra para filtrar — todos os gráficos e números
+            se cruzam.</strong> Ex.: clique em "noite" e depois numa região para ver o
+            perfil de crime daquele recorte.</p>
+        </header>
+
+        <div id="p-highlights" class="grade-kpis"></div>
+
+        <div class="barra-filtros p-barra">
+          <div id="p-anos" class="chips" aria-label="Ano"></div>
+          <div id="p-filtros-ativos" class="chips"></div>
+          <button id="p-limpar" hidden>limpar filtros</button>
         </div>
-        <div id="p-kpis" class="grade-kpis"></div>
+
         <div class="grade-cartoes">
+          <article class="cartao alto">
+            <h2>Tipo de crime</h2>
+            <div id="p-tipo" class="grafico"></div>
+          </article>
+          <article class="cartao">
+            <h2>Região <span class="sufixo">taxa /100 mil hab./ano</span></h2>
+            <div id="p-zona" class="grafico"></div>
+          </article>
+          <article class="cartao">
+            <h2>Hora do dia</h2>
+            <div id="p-hora" class="grafico"></div>
+          </article>
           <article class="cartao largo">
-            <h2>Evolução mensal <span id="p-titulo-contexto"></span></h2>
+            <h2>Evolução mensal <span class="sufixo" id="p-evolucao-ctx"></span></h2>
             <div id="p-evolucao" class="grafico"></div>
           </article>
-          <article class="cartao alto">
-            <h2>Subprefeituras <span class="sufixo" id="p-ranking-sufixo"></span></h2>
-            <div id="p-ranking" class="grafico"></div>
+          <article class="cartao">
+            <h2>Circunstância <span class="sufixo">como o crime ocorreu</span></h2>
+            <div id="p-conduta" class="grafico"></div>
           </article>
           <article class="cartao">
-            <h2>Composição por natureza</h2>
-            <div id="p-naturezas" class="grafico"></div>
-          </article>
-          <article class="cartao">
-            <h2>Circunstância <span class="sufixo">roubos e furtos</span></h2>
-            <div id="p-condutas" class="grafico"></div>
+            <h2>Local do crime</h2>
+            <div id="p-local" class="grafico"></div>
           </article>
         </div>
+
+        <p class="nota" id="p-cobertura"></p>
       </div>
     </section>
 
