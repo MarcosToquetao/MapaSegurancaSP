@@ -45,7 +45,10 @@ export function rotuloMes(m) {
 export function mediaMovel(serie, janela = 3) {
   return serie.map((_, i) => {
     const ini = Math.max(0, i - janela + 1);
-    const fatia = serie.slice(ini, i + 1);
+    // ignora meses sem dado (null) em vez de tratar como zero — evita uma
+    // "rampa" falsa quando a série só começa a existir no meio do eixo
+    const fatia = serie.slice(ini, i + 1).filter((v) => v != null);
+    if (!fatia.length) return null;
     return +(fatia.reduce((a, b) => a + b, 0) / fatia.length).toFixed(1);
   });
 }

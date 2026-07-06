@@ -26,6 +26,7 @@ física, psicológica, moral, sexual, patrimonial (+ descumprimento de medida pr
 import json
 import re
 import unicodedata
+from collections import Counter
 from pathlib import Path
 
 import geopandas as gpd
@@ -144,6 +145,7 @@ def main() -> None:
     ix = {c: i for i, c in enumerate(header)}
 
     naturezas_vistas: dict[str, int] = {}
+    serie_mensal: Counter[str] = Counter()  # "YYYY-MM" -> registros, p/ aba Séries
     linhas = []
     coords = []
     for r in it:
@@ -160,6 +162,10 @@ def main() -> None:
         ano = r[ix["ANO_ESTATISTICA"]]
         if ano not in (2024, 2025, 2026):
             continue
+
+        mes = r[ix["MES_ESTATISTICA"]]
+        if isinstance(mes, (int, float)) and 1 <= mes <= 12:
+            serie_mensal[f"{int(ano)}-{int(mes):02d}"] += 1
 
         hora_raw = str(r[ix["HORA_OCORRENCIA_BO"]] or "")
         hora = 24
@@ -234,6 +240,8 @@ def main() -> None:
         },
         "cobertura_coord": round(via_coord / len(df), 3),
         "pop_zonas": {int(z): int(p) for z, p in zip(zonas["zona"], zonas["pop_2022"])},
+        # total mensal (capital), independente do crossfilter — consumido pela aba Séries
+        "serie_mensal": dict(sorted(serie_mensal.items())),
     }
     (WEB / "mulheres_meta.json").write_text(
         json.dumps(meta, ensure_ascii=False), encoding="utf-8"

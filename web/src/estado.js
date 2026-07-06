@@ -54,8 +54,12 @@ export function mudar(parcial) {
   ouvintes.forEach((fn) => fn(estado));
 }
 
-// dados globais carregados uma vez
-export const dados = { agg: null, distritos: null, pontosMeta: null };
+// dados globais carregados uma vez (mulheresSerieMensal/feminicidioSerieMensal
+// são carregados sob demanda pela aba Séries: dict "YYYY-MM" -> contagem)
+export const dados = {
+  agg: null, distritos: null, pontosMeta: null,
+  mulheresSerieMensal: null, feminicidioSerieMensal: null,
+};
 
 // ---- seletores derivados ----
 export const anosDisponiveis = () =>

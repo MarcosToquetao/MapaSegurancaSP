@@ -3,6 +3,24 @@ import * as echarts from "echarts";
 import { dados, CORES, fmt } from "./estado.js";
 import { TEMA, grafico, rotuloMes, mediaMovel } from "./tema-grafico.js";
 
+async function carregarSeriesMulheres() {
+  if (dados.mulheresSerieMensal && dados.feminicidioSerieMensal) return;
+  const [meta, contexto] = await Promise.all([
+    fetch("data/mulheres_meta.json").then((r) => (r.ok ? r.json() : null)).catch(() => null),
+    fetch("data/mulheres_contexto.json").then((r) => (r.ok ? r.json() : null)).catch(() => null),
+  ]);
+  dados.mulheresSerieMensal = meta?.serie_mensal ?? {};
+  const flat = {};
+  if (contexto?.series?.feminicidio) {
+    for (const ano of contexto.anos) {
+      (contexto.series.feminicidio[ano] ?? []).forEach((v, i) => {
+        if (v != null) flat[`${ano}-${String(i + 1).padStart(2, "0")}`] = v;
+      });
+    }
+  }
+  dados.feminicidioSerieMensal = flat;
+}
+
 // séries oferecidas: naturezas oficiais + condutas com leitura cidadã
 // cores: tons do tricolor preto/vermelho/branco (vermelhos, vinhos, pratas, brancos)
 const CATALOGO = [
@@ -18,6 +36,8 @@ const CATALOGO = [
   { id: "furtos::Transeunte", rotulo: "Furto a transeunte*", cor: "#c9d0d8", tipo: "conduta" },
   { id: "ESTUPRO", rotulo: "Estupro", cor: CORES.genero, tipo: "nat" },
   { id: "ESTUPRO DE VULNERÁVEL", rotulo: "Estupro de vulnerável", cor: "#b9bfc7", tipo: "nat" },
+  { id: "mulheres::violencia", rotulo: "Violência doméstica contra mulheres†", cor: "#ff5c8a", tipo: "mulheres_mensal" },
+  { id: "mulheres::feminicidio", rotulo: "Feminicídio (capital)†", cor: "#a82855", tipo: "feminicidio_mensal" },
 ];
 
 const ativas = new Set(["ROUBO DE CELULAR", "FURTO DE CELULAR", "HOMICÍDIO DOLOSO", "ROUBO - OUTROS"]);
@@ -30,10 +50,15 @@ function serieDe(item) {
     const [cat, conduta] = item.id.split("::");
     return dados.agg.cidade.por_conduta[cat]?.[conduta] ?? null;
   }
+  if (item.tipo === "mulheres_mensal" || item.tipo === "feminicidio_mensal") {
+    const dict = item.tipo === "mulheres_mensal" ? dados.mulheresSerieMensal : dados.feminicidioSerieMensal;
+    if (!dict) return null;
+    return dados.agg.meses.map((m) => dict[m] ?? null);
+  }
   return dados.agg.cidade.por_natureza[item.id] ?? null;
 }
 
-export function initSeries() {
+export async function initSeries() {
   const el = document.getElementById("s-series");
   el.innerHTML = CATALOGO.map((s) =>
     `<button data-id="${s.id}" style="--cor-chip:${s.cor}" class="${ativas.has(s.id) ? "ativo" : ""}"
@@ -61,6 +86,10 @@ export function initSeries() {
   gPrincipal = grafico(echarts, document.getElementById("s-grafico"));
   renderPrincipal();
   renderMultiplos();
+  await carregarSeriesMulheres();
+  renderPrincipal(); // re-renderiza com as séries de mulheres já disponíveis
+  renderMultiplos();
+  window.__series = { serieDe, CATALOGO, ativas }; // depuração
 }
 
 function renderPrincipal() {
