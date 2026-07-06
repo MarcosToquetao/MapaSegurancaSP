@@ -14,23 +14,46 @@ ocorrências** (nível de rua). Ferramenta cidadã + vitrine técnica.
 MVP com dados de jan/2022 a mai/2026 (~2 milhões de ocorrências da capital).
 Atualização automática mensal via GitHub Actions. Plano completo em [docs/PLANO.md](docs/PLANO.md).
 
-## Escopo do MVP
+## Escopo
 
-- **Cidade**: município de São Paulo (capital).
-- **Crimes**: (1) violentos letais, (2) roubos, (3) furtos, (4) violência de gênero.
+- **Cidade**: município de São Paulo (capital), recorte pelo **local do fato**.
+- **Crimes**: violentos letais, roubos, furtos, violência sexual e roubo/furto de celular
+  (base dedicada da SSP), além do painel **Mulheres** (violência doméstica + feminicídios).
 - **Escalas**: coroplético por distrito/subprefeitura **e** mapa de pontos por ocorrência.
-- **Métricas**: números absolutos **e** taxa por 100 mil habitantes.
-- **Idiomas**: PT / EN (i18n leve, padrão herdado do projeto BRIGHT).
+- **Métricas**: números absolutos **e** taxa por 100 mil habitantes (Censo 2022).
+- **5 abas**: Mapa, Painel (crossfilter), Séries, Horários e Mulheres.
 
 ## Stack
 
-| Camada        | Tecnologia                                              |
-|---------------|---------------------------------------------------------|
-| Ingestão/ETL  | Python (`pandas`, `geopandas`, `requests`)              |
-| Tiles de ponto| `tippecanoe` → **PMTiles** (servido estático)           |
-| Front-end     | Vite + MapLibre GL JS + ECharts + i18n JSON             |
-| Hospedagem    | GitHub Pages (tiles grandes: Cloudflare R2, se preciso) |
-| Automação     | GitHub Actions (atualização mensal)                     |
+| Camada        | Tecnologia                                                        |
+|---------------|-------------------------------------------------------------------|
+| Ingestão/ETL  | Python (`pandas`, `geopandas`, `openpyxl`, `requests`)             |
+| Tiles de ponto| **PMTiles** gerados em Python puro (`mapbox-vector-tile`+`pmtiles`)|
+| Front-end     | Vite + MapLibre GL JS + ECharts (vanilla JS, sem framework)        |
+| Hospedagem    | GitHub Pages — site 100% estático                                  |
+| Automação     | GitHub Actions (deploy no push + atualização mensal dos dados)     |
+
+## Como hospedar em outro servidor
+
+O site é **100% estático** — todos os dados já processados estão versionados em
+`web/public/data/`, então **não é preciso rodar o pipeline Python** para publicá-lo.
+Basta Node.js 18+:
+
+```bash
+git clone https://github.com/MarcosToquetao/MapaSegurancaSP.git
+cd MapaSegurancaSP/web
+npm install
+npm run build
+# publique o conteúdo de web/dist/ como arquivos estáticos
+```
+
+A pasta `web/dist/` (~35 MB) funciona em **qualquer domínio ou subpasta** sem
+configuração (caminhos relativos, `base: "./"`), em qualquer servidor de arquivos
+estáticos — nginx, Apache, Pages, S3 etc. Nenhum back-end é necessário.
+
+> Observação: uma cópia estática fica congelada na data do build. Os dados deste
+> repositório são atualizados automaticamente todo mês (dia 5); para manter uma
+> cópia externa em dia, basta repetir o build a partir do repo atualizado.
 
 ## Estrutura do repositório
 
