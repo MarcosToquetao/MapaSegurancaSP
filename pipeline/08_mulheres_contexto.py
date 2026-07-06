@@ -15,6 +15,7 @@ da aba Mulheres (fora do crossfilter — outra fonte, outra unidade de contagem)
 """
 import json
 import time
+from datetime import date
 from pathlib import Path
 from urllib.request import Request, urlopen
 
@@ -22,7 +23,7 @@ BASE = Path(__file__).resolve().parent.parent
 WEB = BASE / "web" / "public" / "data"
 
 API = "https://www.ssp.sp.gov.br/v1/ViolenciaMulher/RecuperaDadosPorAno?ano={ano}"
-ANOS = list(range(2019, 2027))
+ANOS = list(range(2019, date.today().year + 1))  # ano novo entra sozinho na virada
 
 # delito na API → chave no json de saída
 DELITOS = {

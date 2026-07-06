@@ -18,6 +18,7 @@ Taxas por 100k calculadas no cliente (pop embutida aqui e no GeoJSON).
 Base temporal: MES/ANO_ESTATISTICA (padrão oficial SSP).
 """
 import json
+import unicodedata
 from pathlib import Path
 
 import pandas as pd
@@ -28,11 +29,27 @@ EXT = BASE / "data" / "external"
 WEB_DATA = BASE / "web" / "public" / "data"
 
 CATEGORIAS = ["letais", "roubos", "furtos", "genero", "celular"]
-# condutas com leitura cidadã clara (evita a poluição do "Outros")
-CONDUTAS_RELEVANTES = {
-    "Transeunte", "Interior de Veículo", "Residência", "Estabelecimento Comercial",
-    "Interior Transporte Coletivo", "Fios e Cabos", "Carga", "Veículo",
+# condutas com leitura cidadã clara (evita a poluição do "Outros").
+# A fonte grafa o mesmo valor de vários jeitos entre anos (2022 usa MAIÚSCULAS,
+# às vezes com espaços extras) — casar pela forma normalizada, senão a série
+# "a transeunte" zera em 2022 inteiro (~43k registros perdidos).
+CONDUTAS_RELEVANTES = {  # normalizada -> rótulo canônico exposto ao front
+    "TRANSEUNTE": "Transeunte",
+    "INTERIOR DE VEICULO": "Interior de Veículo",
+    "RESIDENCIA": "Residência",
+    "ESTABELECIMENTO COMERCIAL": "Estabelecimento Comercial",
+    "INTERIOR TRANSPORTE COLETIVO": "Interior Transporte Coletivo",
+    "FIOS E CABOS": "Fios e Cabos",
+    "CARGA": "Carga",
+    "VEICULO": "Veículo",
 }
+
+
+def norm_conduta(v):
+    if pd.isna(v):
+        return None
+    s = "".join(c for c in unicodedata.normalize("NFD", str(v)) if not unicodedata.combining(c))
+    return CONDUTAS_RELEVANTES.get(" ".join(s.upper().split()))
 
 
 def series_por(df: pd.DataFrame, chaves: list[str], pos: dict, n_meses: int) -> dict:
@@ -89,6 +106,7 @@ def main() -> None:
         df["MES_ESTATISTICA"].astype(int).astype(str).str.zfill(2)
     )
     df = derivar_tempo(df)
+    df["conduta_canon"] = df["DESCR_CONDUTA"].map(norm_conduta)
     meses = sorted(df["mes"].unique())
     pos = {m: i for i, m in enumerate(meses)}
     nm = len(meses)
@@ -103,8 +121,8 @@ def main() -> None:
         "por_natureza": series_por(df, ["NATUREZA_APURADA"], pos, nm),
         "por_conduta": series_por(
             df[df["categoria"].isin(["roubos", "furtos", "celular"])
-               & df["DESCR_CONDUTA"].isin(CONDUTAS_RELEVANTES)],
-            ["categoria", "DESCR_CONDUTA"], pos, nm,
+               & df["conduta_canon"].notna()],
+            ["categoria", "conduta_canon"], pos, nm,
         ),
     }
 

@@ -343,6 +343,10 @@ select {
 /* ---------- responsivo ---------- */
 @media (max-width: 900px) {
   #topo { flex-wrap: wrap; gap: 10px; }
+  /* telas estreitas: as 5 abas rolam na horizontal em vez de estourar a borda */
+  #abas { overflow-x: auto; max-width: 100%; scrollbar-width: none; }
+  #abas::-webkit-scrollbar { display: none; }
+  #abas button { flex-shrink: 0; }
   .fonte-dados { display: none; }
   #controles-mapa { left: 10px; right: 10px; top: 10px; width: auto; }
   #painel-mapa { display: none; }

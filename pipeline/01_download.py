@@ -11,6 +11,7 @@ Uso:
 """
 import sys
 import time
+from datetime import date
 from pathlib import Path
 
 import requests
@@ -31,7 +32,9 @@ BASES_UNICAS = {
         "https://www.ssp.sp.gov.br/assets/estatistica/vitimas-violencia-domestica/"
         "Base_Viol%C3%AAncia%20contra%20mulher.xlsx",
 }
-ANOS_DISPONIVEIS = [2022, 2023, 2024, 2025, 2026]
+# do início da série até o ano corrente — a atualização mensal (CI) pega o ano
+# novo automaticamente na virada, sem precisar editar esta lista
+ANOS_DISPONIVEIS = list(range(2022, date.today().year + 1))
 CHUNK = 1 << 20  # 1 MB
 
 

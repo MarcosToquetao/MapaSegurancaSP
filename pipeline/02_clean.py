@@ -2,7 +2,9 @@
 Fase 2 — Limpeza: xlsx SSP → parquet por ano (só capital, só categorias do MVP).
 
 Regras validadas em docs/DICIONARIO.md:
-  - filtro NOME_MUNICIPIO == 'S.PAULO'
+  - recorte pelo LOCAL DO FATO: NOME_MUNICIPIO_CIRCUNSCRIÇÃO == 'S.PAULO'
+    (mesmo critério do painel Mulheres; a divergência p/ o município de
+    REGISTRO é ~0,1% — medida em 2026-07 —, quase toda da Delegacia Eletrônica)
   - NATUREZA_APURADA (auditada) → 4 categorias; demais naturezas ficam fora do MVP
   - 'NULL' literal → NA; lat/long 0 ou fora do bbox da capital → NA (fica só no coroplético)
   - leitura em streaming (openpyxl read_only) — os xlsx têm até ~600k linhas por aba
@@ -70,11 +72,17 @@ def ler_aba(ws) -> pd.DataFrame | None:
     ausentes = [c for c in COLUNAS if c not in pos]
     if ausentes:
         print(f"    (colunas ausentes nesta aba, preenchidas com NA: {ausentes})")
-    imun, inat = header.index("NOME_MUNICIPIO"), header.index("NATUREZA_APURADA")
+    inat = header.index("NATUREZA_APURADA")
+    # recorte pelo local do fato (circunscrição); cai para o município de
+    # registro apenas se algum esquema antigo não trouxer a coluna _CIRC
+    imun = next(
+        (i for i, h in enumerate(header) if str(h).startswith("NOME_MUNICIPIO_CIRC")),
+        header.index("NOME_MUNICIPIO"),
+    )
     linhas = [
         [r[pos[c]] if c in pos else None for c in COLUNAS]
         for r in it
-        if r[imun] == "S.PAULO" and r[inat] in CATEGORIA
+        if str(r[imun] or "").strip() == "S.PAULO" and r[inat] in CATEGORIA
     ]
     return pd.DataFrame(linhas, columns=COLUNAS)
 

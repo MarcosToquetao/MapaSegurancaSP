@@ -122,6 +122,9 @@ function renderPrincipal() {
       top: 0, left: 0, icon: "roundRect", itemWidth: 14, itemHeight: 4,
       textStyle: { color: "#a9adb4", fontSize: 11 },
       data: CATALOGO.filter((s) => ativas.has(s.id)).map((s) => s.rotulo),
+      // seleção é pelos chips; clicar na legenda esconderia só a linha suavizada
+      // e deixaria a "gêmea" bruta órfã no gráfico
+      selectedMode: false,
     },
     xAxis: { type: "category", data: rotulos, ...TEMA.eixoX },
     yAxis: { type: "value", ...TEMA.eixoY },
@@ -149,7 +152,8 @@ function renderMultiplos() {
     g.setOption({
       ...TEMA.base,
       grid: { left: 34, right: 6, top: 6, bottom: 18 },
-      tooltip: { ...TEMA.base.tooltip, trigger: "axis", formatter: (ps) => `${ps[0].axisValue}<br><b>${fmt.format(ps[0].value)}</b>` },
+      tooltip: { ...TEMA.base.tooltip, trigger: "axis", formatter: (ps) =>
+        `${ps[0].axisValue}<br><b>${ps[0].value == null ? "sem dado" : fmt.format(ps[0].value)}</b>` },
       xAxis: { type: "category", data: dados.agg.meses.map(rotuloMes), ...TEMA.eixoX, axisLabel: { ...TEMA.eixoX.axisLabel, interval: 11 } },
       yAxis: { type: "value", ...TEMA.eixoY, axisLabel: { ...TEMA.eixoY.axisLabel, fontSize: 9 } },
       series: [{

@@ -160,7 +160,8 @@ def main() -> None:
             continue
 
         ano = r[ix["ANO_ESTATISTICA"]]
-        if ano not in (2024, 2025, 2026):
+        # recorte da SSP começa em 2024; teto em +255 só protege o uint8
+        if not isinstance(ano, (int, float)) or not (2024 <= ano < 2024 + 255):
             continue
 
         mes = r[ix["MES_ESTATISTICA"]]
@@ -227,7 +228,8 @@ def main() -> None:
         "nrows": len(df),
         "colunas": COLUNAS_BIN,
         "rotulos": {
-            "ano": ["2024", "2025", "2026"],
+            # dinâmico: em 2027+ o ano novo entra sem editar o script
+            "ano": [str(2024 + i) for i in range(int(df["ano"].max()) + 1)],
             "zona": ZONAS + ["n/i"],
             "faixa": FAIXAS,
             "relacao": RELACOES,

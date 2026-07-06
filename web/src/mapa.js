@@ -106,6 +106,9 @@ function filtroPontos() {
   const cIdx = meta.categorias.indexOf(estado.categoria);
   const prefixo = estado.mes ? `${estado.ano}-${estado.mes}` : estado.ano;
   const idx = meta.meses.map((m, i) => [m, i]).filter(([m]) => m.startsWith(prefixo)).map(([, i]) => i);
+  // período sem pontos (ex.: mês ainda não publicado): filtro impossível em vez
+  // de Math.min(...[]) = Infinity, que quebraria a expressão do MapLibre
+  if (!idx.length) return ["==", ["get", "m"], -1];
   const filtro = ["all",
     ["==", ["get", "c"], cIdx],
     [">=", ["get", "m"], Math.min(...idx)],
