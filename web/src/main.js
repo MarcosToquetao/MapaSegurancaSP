@@ -56,5 +56,6 @@ function initAbas() {
 
   const dlg = document.getElementById("dialogo-contato");
   document.getElementById("abrir-contato").addEventListener("click", () => dlg.showModal());
+  document.getElementById("abrir-fontes").addEventListener("click", () => dlg.showModal());
   dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
 })();

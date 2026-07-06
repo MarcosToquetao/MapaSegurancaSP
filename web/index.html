@@ -23,8 +23,9 @@
         <button role="tab" data-aba="horarios" aria-selected="false">Horários</button>
         <button role="tab" data-aba="mulheres" aria-selected="false" class="aba-mulheres">Mulheres</button>
       </nav>
-      <p class="fonte-dados">Fonte: SSP-SP · Censo 2022</p>
-      <button id="abrir-contato" class="botao-contato" aria-haspopup="dialog">Contato</button>
+      <button id="abrir-fontes" class="fonte-dados" aria-haspopup="dialog"
+        title="Ver fontes e como contribuir">Fonte: SSP-SP · Censo 2022</button>
+      <button id="abrir-contato" class="botao-contato" aria-haspopup="dialog">Sobre & contato</button>
     </header>
 
     <dialog id="dialogo-contato" aria-labelledby="contato-titulo">
@@ -49,6 +50,21 @@
         <li><a href="https://github.com/MarcosToquetao/MapaSegurancaSP" target="_blank" rel="noopener noreferrer">
           ⌥ código-fonte e dados no GitHub</a></li>
       </ul>
+      <h3 class="contato-subtitulo">Fontes dos dados</h3>
+      <ul class="contato-fontes">
+        <li><a href="https://www.ssp.sp.gov.br/estatistica/consultas" target="_blank" rel="noopener noreferrer">
+          SSP-SP — Dados criminais (microdados de ocorrências, 2022–2026)</a></li>
+        <li><a href="https://www.ssp.sp.gov.br/estatistica/consultas" target="_blank" rel="noopener noreferrer">
+          SSP-SP — Celulares subtraídos (roubo/furto de celular)</a></li>
+        <li><a href="https://www.ssp.sp.gov.br/estatistica/violencia-contra-a-mulher" target="_blank" rel="noopener noreferrer">
+          SSP-SP — Vítimas de violência doméstica (2024+)</a></li>
+        <li><a href="https://geosampa.prefeitura.sp.gov.br" target="_blank" rel="noopener noreferrer">
+          GeoSampa — malhas de distritos e subprefeituras</a></li>
+        <li><a href="https://sidra.ibge.gov.br/tabela/9923" target="_blank" rel="noopener noreferrer">
+          IBGE/SIDRA — população por distrito (Censo 2022)</a></li>
+      </ul>
+      <p class="contato-nota">Os dados brutos são públicos e as transformações são
+        reproduzíveis: todo o pipeline está no repositório.</p>
       <form method="dialog"><button class="fechar-contato">fechar</button></form>
     </dialog>
 

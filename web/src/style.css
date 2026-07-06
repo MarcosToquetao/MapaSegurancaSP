@@ -80,7 +80,12 @@ select {
 #abas button[aria-selected="true"] {
   background: var(--placa-fundo); color: var(--placa-texto);
 }
-.fonte-dados { margin-left: auto; color: var(--texto-3); font-size: 12px; }
+.fonte-dados {
+  margin-left: auto; color: var(--texto-3); font-size: 12px;
+  background: none; border: 0; padding: 4px 6px;
+  text-decoration: underline dotted; text-underline-offset: 3px;
+}
+.fonte-dados:hover { color: var(--texto); }
 
 /* ---------- contato / créditos ---------- */
 .botao-contato {
@@ -112,6 +117,15 @@ select {
   color: var(--texto); text-decoration: none; font-weight: 600; font-size: 13px;
 }
 .contato-canais a:hover { border-color: var(--acento); background: var(--garoa-2); }
+.contato-subtitulo {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--texto-3); margin: 14px 0 8px; font-stretch: 115%;
+  border-top: 1px dashed var(--linha); padding-top: 12px;
+}
+.contato-fontes { list-style: none; padding: 0; margin: 0 0 10px; display: grid; gap: 4px; }
+.contato-fontes a { color: var(--texto-2); font-size: 12.5px; text-decoration: underline dotted; text-underline-offset: 3px; }
+.contato-fontes a:hover { color: var(--texto); }
+.contato-nota { font-size: 11.5px; color: var(--texto-3); margin-bottom: 14px; }
 .fechar-contato {
   background: var(--placa-fundo); color: var(--placa-texto); border: 0;
   border-radius: 7px; padding: 7px 16px; font-weight: 700; font-size: 12.5px;
