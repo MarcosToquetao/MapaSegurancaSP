@@ -24,7 +24,33 @@
         <button role="tab" data-aba="mulheres" aria-selected="false" class="aba-mulheres">Mulheres</button>
       </nav>
       <p class="fonte-dados">Fonte: SSP-SP · Censo 2022</p>
+      <button id="abrir-contato" class="botao-contato" aria-haspopup="dialog">Contato</button>
     </header>
+
+    <dialog id="dialogo-contato" aria-labelledby="contato-titulo">
+      <h2 id="contato-titulo"><span class="placa">SP</span> Sobre esta plataforma</h2>
+      <p>
+        O <strong>Mapa da Segurança</strong> é um projeto independente e de código aberto
+        que compila dados públicos de segurança da cidade de São Paulo (SSP-SP e IBGE)
+        em visualizações acessíveis a qualquer pessoa.
+      </p>
+      <p class="contato-autoria">
+        Idealizado e mantido por <strong>Marcos Lemes</strong>.
+      </p>
+      <p>
+        Encontrou um erro, tem sugestão de melhoria, conhece uma nova fonte de dados ou
+        quer propor uma análise? Toda contribuição é bem-vinda:
+      </p>
+      <ul class="contato-canais">
+        <li><a href="mailto:marcostoquetao@gmail.com?subject=Mapa%20da%20Seguran%C3%A7a%20SP">
+          ✉ marcostoquetao@gmail.com</a></li>
+        <li><a href="https://instagram.com/marcosvlemes" target="_blank" rel="noopener noreferrer">
+          ◎ @marcosvlemes</a></li>
+        <li><a href="https://github.com/MarcosToquetao/MapaSegurancaSP" target="_blank" rel="noopener noreferrer">
+          ⌥ código-fonte e dados no GitHub</a></li>
+      </ul>
+      <form method="dialog"><button class="fechar-contato">fechar</button></form>
+    </dialog>
 
     <!-- ABA 1 · MAPA -->
     <section id="view-mapa" class="view ativa" role="tabpanel">
@@ -231,6 +257,9 @@
               como "ignorado" em quase metade dos registros.</li>
             <li>Um mesmo boletim pode conter mais de uma vítima ou natureza; a unidade aqui é
               o registro de vítima.</li>
+            <li>O recorte é pelo <strong>local do fato</strong> (circunscrição), não pelo local
+              de registro — boletins online da Delegacia da Mulher entram somente quando o
+              fato ocorreu na capital.</li>
             <li>Estupros não estão nesta base — seguem na categoria "Violência sexual"
               das demais abas, com endereço anonimizado por lei.</li>
           </ul>

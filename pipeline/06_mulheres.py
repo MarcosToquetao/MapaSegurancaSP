@@ -5,7 +5,9 @@ Fonte: assets/estatistica/vitimas-violencia-domestica/Base_Violência contra mul
 (endpoint do portal SSP; 68 colunas, nível vítima×BO, inclui SEXO, IDADE,
 RELACIONAMENTO com agressor, ORIENTAÇÃO SEXUAL, FLAG_VITIMA_FATAL).
 
-Recorte: capital (NOME_MUNICIPIO == S.PAULO), vítimas mulheres (SEXO_PESSOA == F),
+Recorte: fato ocorrido na capital (NOME_MUNICIPIO_CIRC == S.PAULO — usar o município
+de REGISTRO infla com o estado inteiro: a Delegacia da Mulher Online registra para
+todo o estado e é sediada na capital), vítimas mulheres (SEXO_PESSOA == F),
 tipos de pessoa vitimados (Vítima, Autor/Vítima, Criança, Adolescente*).
 
 Saídas:
@@ -22,6 +24,7 @@ Agrupamento das naturezas pela tipologia da Lei Maria da Penha (art. 7º):
 física, psicológica, moral, sexual, patrimonial (+ descumprimento de medida protetiva).
 """
 import json
+import re
 import unicodedata
 from pathlib import Path
 
@@ -38,11 +41,11 @@ WEB = BASE / "web" / "public" / "data"
 TIPOS_VITIMA = {"Vítima", "Autor/Vítima", "Criança", "Adolescente", "Adolescente Inf/Vit"}
 
 ZONAS = ["Centro", "Norte", "Sul", "Leste", "Oeste"]
-SECCIONAL_ZONA = {
-    "DEL.SEC.1º CENTRO": 0, "DEL.SEC.2ª SUL": 2, "DEL.SEC.3ª OESTE": 4,
-    "DEL.SEC.4ª NORTE": 1, "DEL.SEC.5ª LESTE": 3, "DEL.SEC.6ª SANTO AMARO": 2,
-    "DEL.SEC.7ª ITAQUERA": 3, "DEL.SEC.8ª SAO MATEUS": 3,
-}
+# As 8 seccionais da capital, pelo NÚMERO (a grafia º/ª varia na fonte e já causou
+# bug: casar por texto deixava só o Centro com os registros sem coordenada):
+# 1ª Centro, 2ª Sul, 3ª Oeste, 4ª Norte, 5ª Leste, 6ª Sto.Amaro→Sul,
+# 7ª Itaquera→Leste, 8ª S.Mateus→Leste
+SECCIONAL_NUM_ZONA = {1: 0, 2: 2, 3: 4, 4: 1, 5: 3, 6: 2, 7: 3, 8: 3}
 
 SUB_ZONA = {  # 32 subprefeituras → 5 macrorregiões administrativas
     "SE": 0,
@@ -103,11 +106,8 @@ def norm(s: str) -> str:
 
 
 def seccional_para_zona(nome: str) -> int:
-    n = norm(nome or "")
-    for chave, z in SECCIONAL_ZONA.items():
-        if norm(chave)[8:] in n:  # compara o sufixo ("1º CENTRO"...), tolera º/ª/°
-            return z
-    return 5  # ignorada
+    m = re.search(r"DEL\.?\s*SEC\.?\s*(\d)", norm(nome or ""))
+    return SECCIONAL_NUM_ZONA.get(int(m.group(1)), 5) if m else 5  # 5 = ignorada
 
 
 def faixa_idade(v) -> int:
@@ -147,7 +147,7 @@ def main() -> None:
     linhas = []
     coords = []
     for r in it:
-        if r[ix["NOME_MUNICIPIO"]] != "S.PAULO":
+        if r[ix["NOME_MUNICIPIO_CIRC"]] != "S.PAULO":
             continue
         if r[ix["SEXO_PESSOA"]] != "F":
             continue
@@ -175,9 +175,15 @@ def main() -> None:
 
         rel = r[ix["DESCR_RELACIONAMENTO"]]
         idade = r[ix["IDADE_PESSOA"]]
+        # zona: seccional do local do fato; se não for uma das 8 da capital
+        # (fato fora/nulo), usa a seccional de registro como aproximação —
+        # vítimas de violência doméstica costumam registrar perto de casa.
+        zona = seccional_para_zona(r[ix["NOME_SECCIONAL_CIRC"]])
+        if zona == 5:
+            zona = seccional_para_zona(r[ix["NOME_SECCIONAL"]])
         linhas.append((
             int(ano) - 2024,
-            seccional_para_zona(r[ix["NOME_SECCIONAL_CIRC"]]),   # provisório; coord refina depois
+            zona,                                                # provisório; coord refina depois
             faixa_idade(idade),
             RELACAO_IDX.get(rel, 6),
             NATUREZA_GRUPO[nat],
