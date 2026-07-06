@@ -131,9 +131,15 @@ function renderPrincipal() {
 
 function renderMultiplos() {
   const alvo = document.getElementById("s-multiplos");
-  alvo.innerHTML = CATALOGO.map((s) =>
-    `<article class="cartao"><h3 style="color:${s.cor}">${s.rotulo}</h3><div class="grafico" id="s-mini-${cssId(s.id)}"></div></article>`
-  ).join("");
+  // monta o grid apenas na 1ª chamada: recriar o innerHTML nas chamadas
+  // seguintes destruiria os nós que os gráficos ECharts já cacheados em
+  // gMultiplos apontam, deixando-os órfãos (grid inteiro fica em branco)
+  if (!alvo.dataset.montado) {
+    alvo.innerHTML = CATALOGO.map((s) =>
+      `<article class="cartao"><h3 style="color:${s.cor}">${s.rotulo}</h3><div class="grafico" id="s-mini-${cssId(s.id)}"></div></article>`
+    ).join("");
+    alvo.dataset.montado = "1";
+  }
   for (const s of CATALOGO) {
     const bruta = serieDe(s);
     const el = document.getElementById(`s-mini-${cssId(s.id)}`);
