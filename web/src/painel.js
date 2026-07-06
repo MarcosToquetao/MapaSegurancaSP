@@ -18,8 +18,11 @@ let anoAtivo = null; // null = todos os anos
 // dims histogramadas a cada render
 const SPECS = [
   { dim: "tipo", tam: 12 }, { dim: "zona", tam: 6 }, { dim: "hora", tam: 25 },
-  { dim: "conduta", tam: 10 }, { dim: "local", tam: 8 },
+  { dim: "conduta", tam: 11 }, { dim: "local", tam: 9 },
 ];
+// barras escondidas por não informarem nada: conduta 0 = "Não especificada"
+// (a fonte registra "outros" na maioria dos roubos/furtos), local 8 = "n/i"
+const OCULTAR = { conduta: [0], local: [8] };
 
 export async function initPainel() {
   const [meta, buf] = await Promise.all([
@@ -60,6 +63,9 @@ export async function initPainel() {
     `Base principal da SSP (não inclui a base separada de celulares, para não duplicar — ` +
     `roubos/furtos "outros" já os contêm). Hora do fato conhecida em ` +
     `${Math.round(meta.cobertura_hora * 100)}% dos registros; o gráfico de horário usa só esses. ` +
+    `A circunstância específica é informada pela fonte em ` +
+    `${Math.round((meta.cobertura_conduta ?? 0) * 100)}% dos casos (no restante consta ` +
+    `apenas "outros") — o gráfico mostra só as especificadas. ` +
     `Taxas usam a população do Censo 2022 e são anualizadas.`;
   render();
 }
@@ -129,7 +135,9 @@ function renderHighlights(outs, total, nMeses) {
 /* ---- barras horizontais clicáveis (tipo, conduta, local) ---- */
 function barra(elId, dim, cont, rotulos, { sort } = {}) {
   const sel = cf.filtros.get(dim);
-  let itens = rotulos.map((r, i) => ({ r, i, v: cont[i] })).filter((x) => x.v > 0 || sel?.has(x.i));
+  const esconder = new Set(OCULTAR[dim] ?? []);
+  let itens = rotulos.map((r, i) => ({ r, i, v: cont[i] }))
+    .filter((x) => !esconder.has(x.i) && (x.v > 0 || sel?.has(x.i)));
   if (sort) itens.sort((a, b) => a.v - b.v);
   const g = graficos.get(elId);
   g.setOption({

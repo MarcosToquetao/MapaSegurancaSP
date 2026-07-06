@@ -33,6 +33,9 @@ jobs:
           python pipeline/03_geo.py
           python pipeline/04_aggregate.py
           python pipeline/05_points.py
+          python pipeline/06_mulheres.py
+          python pipeline/07_painel.py
+          python pipeline/08_mulheres_contexto.py
 
       - name: Comitar artefatos atualizados
         run: |

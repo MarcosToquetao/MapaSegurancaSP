@@ -36,7 +36,7 @@
         em visualizações acessíveis a qualquer pessoa.
       </p>
       <p class="contato-autoria">
-        Idealizado e mantido por <strong>Marcos Lemes</strong>.
+        Idealizado e mantido por <strong>Marcos Lemes Toquetão</strong>.
       </p>
       <p>
         Encontrou um erro, tem sugestão de melhoria, conhece uma nova fonte de dados ou
@@ -58,6 +58,8 @@
           SSP-SP — Celulares subtraídos (roubo/furto de celular)</a></li>
         <li><a href="https://www.ssp.sp.gov.br/estatistica/violencia-contra-a-mulher" target="_blank" rel="noopener noreferrer">
           SSP-SP — Vítimas de violência doméstica (2024+)</a></li>
+        <li><a href="https://www.ssp.sp.gov.br/estatistica/violencia-contra-a-mulher" target="_blank" rel="noopener noreferrer">
+          SSP-SP — Tabela oficial de violência contra a mulher (feminicídios, 2019+)</a></li>
         <li><a href="https://geosampa.prefeitura.sp.gov.br" target="_blank" rel="noopener noreferrer">
           GeoSampa — malhas de distritos e subprefeituras</a></li>
         <li><a href="https://sidra.ibge.gov.br/tabela/9923" target="_blank" rel="noopener noreferrer">
@@ -147,7 +149,7 @@
             <div id="p-evolucao" class="grafico"></div>
           </article>
           <article class="cartao">
-            <h2>Circunstância <span class="sufixo">como o crime ocorreu</span></h2>
+            <h2>Circunstância <span class="sufixo">quando especificada pela fonte</span></h2>
             <div id="p-conduta" class="grafico"></div>
           </article>
           <article class="cartao">
@@ -213,9 +215,13 @@
         <header class="w-intro">
           <h2>Violência doméstica contra mulheres</h2>
           <p>
-            Registros de vítimas mulheres na cidade de São Paulo desde 2024, da base de
-            violência doméstica da SSP-SP — ameaça, perseguição, lesão corporal, injúria,
+            Este painel usa a base de <strong>vítimas de violência doméstica</strong> da
+            SSP-SP: cada registro é uma vítima mulher em um boletim de ocorrência cujo fato
+            aconteceu na capital, desde 2024 — ameaça, perseguição, lesão corporal, injúria,
             violência psicológica, patrimonial e descumprimento de medida protetiva.
+            Ela <strong>não</strong> reúne todos os BOs com vítimas mulheres: estupros e
+            feminicídios são publicados pela SSP em separado (veja o cartão de série oficial
+            e o rodapé), e crimes patrimoniais como roubo e furto estão nas demais abas.
             <strong>Todos os números abaixo reagem aos filtros: clique em qualquer
             barra, fatia ou zona para cruzar variáveis.</strong>
           </p>
@@ -244,6 +250,10 @@
           <article class="cartao">
             <h2>Tipo de violência <span class="sufixo">tipologia da Lei Maria da Penha</span></h2>
             <div id="w-grupo" class="grafico"></div>
+          </article>
+          <article class="cartao">
+            <h2>Feminicídios na capital <span class="sufixo">série oficial SSP · não reage aos filtros</span></h2>
+            <div id="w-feminicidio" class="grafico"></div>
           </article>
           <article class="cartao">
             <h2>Onde acontece</h2>
@@ -276,10 +286,17 @@
             <li>O recorte é pelo <strong>local do fato</strong> (circunscrição), não pelo local
               de registro — boletins online da Delegacia da Mulher entram somente quando o
               fato ocorreu na capital.</li>
+            <li>A base de microdados <strong>não contém crimes letais</strong>: o gráfico de
+              feminicídios vem da tabela agregada oficial da SSP (recorte capital) e por isso
+              não reage aos filtros. O ano corrente (*) está incompleto.</li>
+            <li>A SSP <strong>não publica dados do autor</strong> (sexo, idade) nos microdados —
+              apenas a relação da vítima com o agressor. Por isso não é possível filtrar por
+              sexo do agressor.</li>
             <li>Estupros não estão nesta base — seguem na categoria "Violência sexual"
               das demais abas, com endereço anonimizado por lei.</li>
           </ul>
-          <p>Fontes: SSP-SP (base de vítimas de violência doméstica, atualização mensal) ·
+          <p>Fontes: SSP-SP (base de vítimas de violência doméstica, atualização mensal;
+            feminicídios: tabela oficial de violência contra a mulher) ·
             população: Censo 2022/IBGE. Em emergência, ligue <strong>190</strong>;
             denúncias: <strong>180</strong> (Central de Atendimento à Mulher).</p>
         </footer>

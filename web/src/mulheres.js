@@ -18,17 +18,20 @@ let NROWS = 0;
 const filtros = new Map(); // dim -> Set(valores)
 const graficos = new Map();
 let ZONAS_GJ = null;
+let CONTEXTO = null;    // série oficial (feminicídios) — outra fonte, fora do crossfilter
 
 /* ------------------------------------------------ dados ------------------------------------------------ */
 async function carregar() {
-  const [meta, buf, zonas] = await Promise.all([
+  const [meta, buf, zonas, contexto] = await Promise.all([
     fetch("data/mulheres_meta.json").then((r) => r.json()),
     fetch("data/mulheres.bin").then((r) => r.arrayBuffer()),
     fetch("data/zonas.geojson").then((r) => r.json()),
+    fetch("data/mulheres_contexto.json").then((r) => (r.ok ? r.json() : null)).catch(() => null),
   ]);
   META = meta;
   NROWS = meta.nrows;
   ZONAS_GJ = zonas;
+  CONTEXTO = contexto;
   meta.colunas.forEach((c, i) => {
     COLS[c] = new Uint8Array(buf, i * NROWS, NROWS);
   });
@@ -77,9 +80,10 @@ function alternarFiltro(dim, valor) {
 export async function initMulheres() {
   await carregar();
   window.__mulheres = { alternarFiltro, filtros, totalFiltrado, contar }; // depuração
-  for (const id of ["w-zonas", "w-faixa", "w-relacao", "w-grupo", "w-local", "w-hora", "w-orientacao"]) {
+  for (const id of ["w-zonas", "w-faixa", "w-relacao", "w-grupo", "w-local", "w-hora", "w-orientacao", "w-feminicidio"]) {
     graficos.set(id, grafico(echarts, document.getElementById(id)));
   }
+  renderFeminicidio(); // estático: outra fonte, não reage aos filtros
   document.getElementById("w-cobertura").textContent =
     `Localização exata disponível em ${Math.round(META.cobertura_coord * 100)}% dos registros; ` +
     `no restante, a macrorregião vem da seccional de polícia responsável.`;
@@ -119,7 +123,6 @@ function renderHighlights() {
   const total = totalFiltrado();
   const rel = contar("relacao");
   const grupo = contar("grupo");
-  const fatal = contar("fatal");
   const faixa = contar("faixa");
   const somaRel = rel.reduce((a, b) => a + b, 0) || 1;
   const somaGrupo = grupo.reduce((a, b) => a + b, 0) || 1;
@@ -135,7 +138,7 @@ function renderHighlights() {
     { v: `${fmt1.format((fisica / somaGrupo) * 100)}%`, r: "violência física", cor: ROSA.profundo },
     { v: `${fmt1.format((psicoMoral / somaGrupo) * 100)}%`, r: "violência psicológica ou moral (ameaça, perseguição, injúria...)", cor: ROSA.claro },
     { v: META.rotulos.faixa[iFaixaMax] + " anos", r: "faixa etária com mais registros", cor: ROSA.vivo },
-    { v: fmt.format(fatal[1]), r: "vítimas fatais na seleção", cor: "#ffffff" },
+    { v: fmt.format(grupo[5]), r: "descumprimentos de medida protetiva", cor: "#ffffff" },
   ];
   document.getElementById("w-highlights").innerHTML = cards.map((c) => `
     <div class="kpi" style="--cor-kpi:${c.cor}">
@@ -242,6 +245,47 @@ function renderHora() {
   }, true);
   g.off("click");
   g.on("click", (p) => alternarFiltro("hora", p.dataIndex));
+}
+
+// Feminicídios: a base de microdados não contém crimes letais — este gráfico usa a
+// tabela agregada oficial da SSP (recorte capital) e por isso NÃO reage aos filtros.
+function renderFeminicidio() {
+  const el = document.getElementById("w-feminicidio");
+  if (!CONTEXTO?.series?.feminicidio) {
+    el.closest("article")?.setAttribute("hidden", "");
+    return;
+  }
+  const anos = CONTEXTO.anos;
+  const totais = anos.map((a) => {
+    const s = CONTEXTO.series.feminicidio[a];
+    return s ? s.reduce((x, y) => x + (y ?? 0), 0) : 0;
+  });
+  const anoAtual = anos[anos.length - 1];
+  const g = graficos.get("w-feminicidio");
+  g.setOption({
+    ...TEMA.base,
+    grid: { left: 36, right: 10, top: 16, bottom: 24 },
+    tooltip: {
+      ...TEMA.base.tooltip,
+      formatter: (p) => `${p.name}${p.name === anoAtual ? " (parcial)" : ""}<br>` +
+        `<b>${fmt.format(p.value)}</b> feminicídios na capital`,
+    },
+    xAxis: { type: "category", data: anos, ...TEMA.eixoX },
+    yAxis: { type: "value", ...TEMA.eixoY, splitLine: { lineStyle: { color: "#1f1a1c" } } },
+    series: [{
+      type: "bar", barWidth: "58%",
+      data: totais.map((v, i) => ({
+        value: v,
+        // ano corrente incompleto: barra apagada para não sugerir queda
+        itemStyle: { color: i === anos.length - 1 ? "#5a3140" : ROSA.profundo, borderRadius: [3, 3, 0, 0] },
+      })),
+      label: {
+        show: true, position: "top", color: ROSA.texto, fontSize: 10,
+        fontFamily: "IBM Plex Mono, monospace",
+        formatter: (p) => p.dataIndex === anos.length - 1 ? `${p.value}*` : `${p.value}`,
+      },
+    }],
+  }, true);
 }
 
 function renderOrientacao() {
