@@ -1,40 +1,29 @@
-// Orquestração: carrega dados, registra protocolo PMTiles, monta abas e views.
+// Orquestração: carrega dados, registra PMTiles, monta seções e navegação.
 import maplibregl from "maplibre-gl";
 import { Protocol } from "pmtiles";
-import { estado, dados, anosDisponiveis } from "./estado.js";
+import { estado, dados, anosDisponiveis, lerURL, mudar, MESES } from "./estado.js";
 import { initMapa } from "./mapa.js";
 import { initPainel } from "./painel.js";
 import { initSeries } from "./series.js";
-import { initHorarios } from "./horarios.js";
 import { initMulheres } from "./mulheres.js";
 import "./style.css";
 
 maplibregl.addProtocol("pmtiles", new Protocol().tile);
 
-const iniciadas = new Set();
+const INITS = { explorar: initPainel, tendencias: initSeries, mulheres: initMulheres };
+const iniciadas = new Set(["mapa"]);
 
-function initAbas() {
-  const nav = document.getElementById("abas");
-  nav.addEventListener("click", (e) => {
-    const b = e.target.closest("button");
-    if (!b) return;
-    const aba = b.dataset.aba;
-    nav.querySelectorAll("button").forEach((x) =>
-      x.setAttribute("aria-selected", x === b ? "true" : "false"));
-    document.querySelectorAll(".view").forEach((v) => {
-      const ativa = v.id === `view-${aba}`;
-      v.classList.toggle("ativa", ativa);
-      v.hidden = !ativa;
-    });
-    // inicialização preguiçosa: cada aba monta na primeira visita
-    if (!iniciadas.has(aba)) {
-      iniciadas.add(aba);
-      if (aba === "painel") initPainel();
-      if (aba === "series") initSeries();
-      if (aba === "horarios") initHorarios();
-      if (aba === "mulheres") initMulheres();
-    }
+function irPara(aba) {
+  document.querySelectorAll("#abas button").forEach((x) =>
+    x.setAttribute("aria-selected", x.dataset.aba === aba ? "true" : "false"));
+  document.querySelectorAll(".view").forEach((v) => {
+    const ativa = v.id === `view-${aba}`;
+    v.classList.toggle("ativa", ativa);
+    v.hidden = !ativa;
   });
+  // inicialização preguiçosa: cada seção monta na primeira visita
+  if (!iniciadas.has(aba)) { iniciadas.add(aba); INITS[aba]?.(); }
+  mudar({ aba });
 }
 
 (async function boot() {
@@ -46,16 +35,23 @@ function initAbas() {
   dados.agg = agg;
   dados.distritos = distritos;
   dados.pontosMeta = pontosMeta;
-  estado.ano = anosDisponiveis().at(-1);
-  // se os agregados ainda não trazem a categoria default, recua para a primeira
-  if (!agg.cidade.por_categoria[estado.categoria]) estado.categoria = agg.categorias[0];
+  lerURL();
+  if (!anosDisponiveis().includes(estado.ano)) estado.ano = anosDisponiveis().at(-1);
 
-  initAbas();
-  iniciadas.add("mapa");
+  const ult = agg.meses.at(-1);
+  document.getElementById("sobre-atualizado").textContent =
+    `Dados até ${MESES[+ult.slice(5) - 1]}/${ult.slice(0, 4)}, atualizados todo mês.`;
+
   initMapa();
+  document.getElementById("abas").addEventListener("click", (e) => {
+    const b = e.target.closest("button");
+    if (b) irPara(b.dataset.aba);
+  });
+  irPara(estado.aba);
+  // voltar/avançar do navegador e links com #secao (replaceState não dispara isto)
+  addEventListener("hashchange", () => { lerURL(); irPara(estado.aba); });
 
-  const dlg = document.getElementById("dialogo-contato");
-  document.getElementById("abrir-contato").addEventListener("click", () => dlg.showModal());
-  document.getElementById("abrir-fontes").addEventListener("click", () => dlg.showModal());
+  const dlg = document.getElementById("dialogo-sobre");
+  document.getElementById("abrir-sobre").addEventListener("click", () => dlg.showModal());
   dlg.addEventListener("click", (e) => { if (e.target === dlg) dlg.close(); });
 })();

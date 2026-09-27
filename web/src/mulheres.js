@@ -3,14 +3,15 @@
 // todo gráfico é clicável e vira filtro; todo número recalcula na hora.
 import * as echarts from "echarts";
 import { fmt, fmt1 } from "./estado.js";
-import { TEMA, grafico, RAMPA_GRAVE_ROSA } from "./tema-grafico.js";
+import { TEMA, COR, grafico, RAMPA_GRAVE_ROSA } from "./tema-grafico.js";
 
-// paleta rosa — extensão do tricolor (vermelho+branco), fundo segue preto
+// paleta magenta sobre concreto claro (contraste AA no branco)
 const ROSA = {
-  vivo: "#ff5c8a", claro: "#ffa9c1", medio: "#e0447a",
-  profundo: "#a82855", texto: "#ffd3e0",
+  vivo: "#9C1F55", claro: "#F2A7C0", medio: "#D94A7B",
+  profundo: "#5A0B2E", texto: "#5A0B2E",
 };
-const SEQ = [ROSA.vivo, ROSA.medio, ROSA.profundo, ROSA.claro, "#c9cdd4", "#8a8f98", "#6b6f77", "#54575e"];
+const APAGADO = "#EAE3E6";
+const SEQ = [ROSA.vivo, ROSA.medio, ROSA.claro, ROSA.profundo, "#B9B7B0", "#8E8C85", "#6B6963", "#4B4A45"];
 
 let META = null;
 let COLS = {};          // dim -> Uint8Array
@@ -113,7 +114,7 @@ function renderChipsAtivos() {
     [...s].map((v) => ({ d, v, rotulo: META.rotulos[d][v] })));
   alvo.innerHTML = pares.length
     ? pares.map((p) => `<button data-d="${p.d}" data-v="${p.v}">${p.rotulo} ✕</button>`).join("")
-    : `<span class="w-sem-filtro">clique em qualquer barra, fatia ou zona para filtrar</span>`;
+    : "";
   alvo.querySelectorAll("button").forEach((b) =>
     b.addEventListener("click", () => alternarFiltro(b.dataset.d, +b.dataset.v)));
   document.getElementById("w-filtros-limpar").hidden = !pares.length;
@@ -129,22 +130,18 @@ function renderHighlights() {
 
   const parceiro = rel[0] + rel[1] + rel[2]; // união estável + casamento + envolvimento amoroso
   const fisica = grupo[0];
-  const psicoMoral = grupo[1] + grupo[2];
   const iFaixaMax = faixa.slice(0, 8).indexOf(Math.max(...faixa.slice(0, 8)));
 
   const cards = [
-    { v: fmt.format(total), r: "registros de violência contra mulheres", cor: ROSA.vivo },
-    { v: `${fmt1.format((parceiro / somaRel) * 100)}%`, r: "agressor era parceiro ou ex (união, casamento ou envolvimento amoroso)", cor: ROSA.medio },
-    { v: `${fmt1.format((fisica / somaGrupo) * 100)}%`, r: "violência física", cor: ROSA.profundo },
-    { v: `${fmt1.format((psicoMoral / somaGrupo) * 100)}%`, r: "violência psicológica ou moral (ameaça, perseguição, injúria...)", cor: ROSA.claro },
-    { v: META.rotulos.faixa[iFaixaMax] + " anos", r: "faixa etária com mais registros", cor: ROSA.vivo },
-    { v: fmt.format(grupo[5]), r: "descumprimentos de medida protetiva", cor: "#ffffff" },
+    { v: fmt.format(total), r: "registros de vítimas" },
+    { v: `${fmt1.format((parceiro / somaRel) * 100)}%`, r: "agredidas por parceiro ou ex" },
+    { v: `${fmt1.format((fisica / somaGrupo) * 100)}%`, r: "violência física" },
+    { v: META.rotulos.faixa[iFaixaMax] + " anos", r: "idade mais atingida" },
+    { v: fmt.format(grupo[5]), r: "medidas protetivas descumpridas" },
   ];
   document.getElementById("w-highlights").innerHTML = cards.map((c) => `
-    <div class="kpi" style="--cor-kpi:${c.cor}">
-      <div class="valor" style="color:${c.cor}">${c.v}</div>
-      <div class="kpi-rotulo">${c.r}</div>
-    </div>`).join("");
+    <div class="kpi"><div class="valor" style="color:${ROSA.vivo}">${c.v}</div>
+      <div class="kpi-rotulo">${c.r}</div></div>`).join("");
 }
 
 function renderZonas() {
@@ -164,15 +161,16 @@ function renderZonas() {
     },
     visualMap: {
       min: 0, max: vmax, orient: "vertical", right: 4, bottom: 8, itemHeight: 90,
-      textStyle: { color: "#8a8f98", fontSize: 9 }, text: ["mais", "menos"],
+      textStyle: { color: COR.texto3, fontSize: 10 }, text: ["mais", "menos"],
       // escuro = mais grave: rosa pálido (menos registros) → vinho profundo (mais)
       inRange: { color: RAMPA_GRAVE_ROSA },
     },
     series: [{
       type: "map", map: "zonas-sp", roam: false, nameProperty: "nome",
-      label: { show: true, color: "#fff", fontSize: 11, fontFamily: "Archivo, sans-serif" },
-      itemStyle: { borderColor: "#0d0e10", borderWidth: 1.5 },
-      emphasis: { label: { color: "#fff" }, itemStyle: { areaColor: ROSA.claro } },
+      label: { show: true, color: COR.texto, fontSize: 12, fontFamily: "Barlow Semi Condensed, sans-serif", fontWeight: 700,
+        textBorderColor: "#fff", textBorderWidth: 2.5 },
+      itemStyle: { borderColor: "#ffffff", borderWidth: 2 },
+      emphasis: { label: { color: COR.texto }, itemStyle: { areaColor: ROSA.claro } },
       select: { disabled: true },
       data: dadosMapa,
     }],
@@ -196,10 +194,10 @@ function barra(elId, dim, titulo, horizontal = false) {
   const g = graficos.get(elId);
   const eixoCat = {
     type: "category", data: itens.map((x) => x.r),
-    axisLabel: { color: "#c9cdd4", fontSize: 10, width: horizontal ? 150 : undefined, overflow: "truncate" },
+    axisLabel: { color: COR.texto, fontSize: 11, width: horizontal ? 150 : undefined, overflow: "truncate" },
     axisLine: { show: false }, axisTick: { show: false },
   };
-  const eixoVal = { type: "value", ...TEMA.eixoY, splitLine: { lineStyle: { color: "#1f1a1c" } } };
+  const eixoVal = { type: "value", ...TEMA.eixoY };
   g.setOption({
     ...TEMA.base,
     grid: { left: horizontal ? 8 : 40, right: horizontal ? 52 : 10, top: 8, bottom: horizontal ? 8 : 40, containLabel: horizontal },
@@ -210,14 +208,13 @@ function barra(elId, dim, titulo, horizontal = false) {
       type: "bar", data: itens.map((x) => ({
         value: x.v,
         itemStyle: {
-          color: selecao.size && !selecao.has(x.i) ? "#3a3134" : ROSA.vivo,
+          color: selecao.size && !selecao.has(x.i) ? APAGADO : ROSA.vivo,
           borderRadius: horizontal ? [0, 3, 3, 0] : [3, 3, 0, 0],
         },
       })),
       barWidth: "62%",
       label: horizontal ? {
-        show: true, position: "right", color: "#8a8f98", fontSize: 9.5,
-        fontFamily: "IBM Plex Mono, monospace", formatter: (p) => fmt.format(p.value),
+        show: true, position: "right", ...TEMA.rotulo, formatter: (p) => fmt.format(p.value),
       } : undefined,
     }],
   }, true);
@@ -234,12 +231,12 @@ function renderHora() {
     grid: { left: 42, right: 10, top: 10, bottom: 22 },
     tooltip: { ...TEMA.base.tooltip, trigger: "axis", formatter: (ps) => `${ps[0].axisValue}<br><b>${fmt.format(ps[0].value)}</b>` },
     xAxis: { type: "category", data: [...Array(24).keys()].map((h) => `${h}h`), ...TEMA.eixoX },
-    yAxis: { type: "value", ...TEMA.eixoY, splitLine: { lineStyle: { color: "#1f1a1c" } } },
+    yAxis: { type: "value", ...TEMA.eixoY },
     series: [{
       type: "bar", barWidth: "70%",
       data: cont.map((v, h) => ({
         value: v,
-        itemStyle: { color: selecao.size && !selecao.has(h) ? "#3a3134" : ROSA.medio, borderRadius: [2, 2, 0, 0] },
+        itemStyle: { color: selecao.size && !selecao.has(h) ? APAGADO : ROSA.vivo, borderRadius: [2, 2, 0, 0] },
       })),
     }],
   }, true);
@@ -271,17 +268,16 @@ function renderFeminicidio() {
         `<b>${fmt.format(p.value)}</b> feminicídios na capital`,
     },
     xAxis: { type: "category", data: anos, ...TEMA.eixoX },
-    yAxis: { type: "value", ...TEMA.eixoY, splitLine: { lineStyle: { color: "#1f1a1c" } } },
+    yAxis: { type: "value", ...TEMA.eixoY },
     series: [{
       type: "bar", barWidth: "58%",
       data: totais.map((v, i) => ({
         value: v,
         // ano corrente incompleto: barra apagada para não sugerir queda
-        itemStyle: { color: i === anos.length - 1 ? "#5a3140" : ROSA.profundo, borderRadius: [3, 3, 0, 0] },
+        itemStyle: { color: i === anos.length - 1 ? ROSA.claro : ROSA.vivo, borderRadius: [3, 3, 0, 0] },
       })),
       label: {
-        show: true, position: "top", color: ROSA.texto, fontSize: 10,
-        fontFamily: "IBM Plex Mono, monospace",
+        show: true, position: "top", ...TEMA.rotulo, color: ROSA.texto,
         formatter: (p) => p.dataIndex === anos.length - 1 ? `${p.value}*` : `${p.value}`,
       },
     }],
@@ -300,11 +296,11 @@ function renderOrientacao() {
       type: "pie", radius: ["42%", "70%"],
       data: cont.map((v, i) => ({
         name: rot[i], value: v,
-        itemStyle: { color: selecao.size && !selecao.has(i) ? "#3a3134" : SEQ[i % SEQ.length] },
+        itemStyle: { color: selecao.size && !selecao.has(i) ? APAGADO : SEQ[i % SEQ.length] },
       })).filter((d) => d.value > 0),
-      label: { color: "#c9cdd4", fontSize: 10.5 },
-      labelLine: { lineStyle: { color: "#3a3134" } },
-      itemStyle: { borderColor: "#141012", borderWidth: 2 },
+      label: { color: COR.texto2, fontSize: 11 },
+      labelLine: { lineStyle: { color: "#CFCDC7" } },
+      itemStyle: { borderColor: "#ffffff", borderWidth: 2 },
     }],
   }, true);
   g.off("click");

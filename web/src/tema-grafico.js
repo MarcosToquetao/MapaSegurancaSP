@@ -1,31 +1,36 @@
-// Tema compartilhado dos gráficos ECharts (garoa + mono nos eixos).
+// Tema compartilhado dos gráficos ECharts (concreto claro + mono nos eixos).
 export const SEM_MOVIMENTO = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const MONO = "JetBrains Mono, monospace";
+export const COR = { texto: "#15171C", texto2: "#4B4A45", texto3: "#62605A", linha: "#E7E5E0", apagado: "#E2E0DA", placa: "#1C4A94" };
 
 export const TEMA = {
   base: {
     animation: !SEM_MOVIMENTO,
-    textStyle: { fontFamily: "Archivo, sans-serif" },
+    aria: { enabled: true, decal: { show: false } }, // descrição textual gerada para leitores de tela
+    textStyle: { fontFamily: "Public Sans, sans-serif", color: COR.texto2 },
     tooltip: {
-      backgroundColor: "#161719",
-      borderColor: "#2c2e33",
-      textStyle: { color: "#f5f6f7", fontSize: 12 },
+      backgroundColor: "#FFFFFF",
+      borderColor: "#CFCDC7",
+      textStyle: { color: COR.texto, fontSize: 12 },
+      extraCssText: "box-shadow:0 4px 16px rgba(21,23,28,.14);border-radius:8px;",
     },
   },
   eixoX: {
-    axisLabel: { color: "#6f747c", fontSize: 10, fontFamily: "IBM Plex Mono, monospace" },
-    axisLine: { lineStyle: { color: "#2c2e33" } },
+    axisLabel: { color: COR.texto3, fontSize: 10, fontFamily: MONO },
+    axisLine: { lineStyle: { color: "#CFCDC7" } },
     axisTick: { show: false },
   },
   eixoY: {
-    axisLabel: { color: "#6f747c", fontSize: 10, fontFamily: "IBM Plex Mono, monospace" },
-    splitLine: { lineStyle: { color: "#1f2124" } },
+    axisLabel: { color: COR.texto3, fontSize: 10, fontFamily: MONO },
+    splitLine: { lineStyle: { color: COR.linha } },
   },
+  rotulo: { color: COR.texto2, fontSize: 10, fontFamily: MONO },
 };
 
-// Rampas sequenciais "quanto mais grave, mais escuro/vermelho".
-// Convenção do projeto: baixo = claro/pálido, alto = vermelho profundo (escuro = mais crime).
-export const RAMPA_GRAVE = ["#e6c7cb", "#d1808b", "#bf3a4c", "#8a1421", "#4a0610"];
-export const RAMPA_GRAVE_ROSA = ["#f6d7e1", "#e78bab", "#d1436f", "#9c1c4c", "#54082b"];
+// Rampas sequenciais: baixo = claro, alto = escuro (mais crime = mais escuro).
+export const RAMPA_GRAVE = ["#FBE8A6", "#F4B454", "#E0702F", "#B8341F", "#6E1414"];
+export const RAMPA_GRAVE_ROSA = ["#FBE7EF", "#F2A7C0", "#D94A7B", "#9C1F55", "#5A0B2E"];
 
 export function grafico(echarts, el) {
   const g = echarts.init(el);

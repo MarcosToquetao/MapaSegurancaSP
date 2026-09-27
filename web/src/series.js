@@ -1,7 +1,7 @@
-// Aba SÉRIES — séries temporais das principais naturezas + condutas-proxy.
+// Seção TENDÊNCIAS — séries mensais das principais naturezas + recortes.
 import * as echarts from "echarts";
-import { dados, CORES, fmt } from "./estado.js";
-import { TEMA, grafico, rotuloMes, mediaMovel } from "./tema-grafico.js";
+import { dados, fmt } from "./estado.js";
+import { TEMA, COR, grafico, rotuloMes, mediaMovel } from "./tema-grafico.js";
 
 async function carregarSeriesMulheres() {
   if (dados.mulheresSerieMensal && dados.feminicidioSerieMensal) return;
@@ -21,26 +21,29 @@ async function carregarSeriesMulheres() {
   dados.feminicidioSerieMensal = flat;
 }
 
-// séries oferecidas: naturezas oficiais + condutas com leitura cidadã
-// cores: tons do tricolor preto/vermelho/branco (vermelhos, vinhos, pratas, brancos)
+// séries oferecidas: naturezas oficiais + recortes com leitura cidadã.
+// Cores por família (tom forte = roubo, claro = furto) para ler em fundo branco.
 const CATALOGO = [
-  { id: "ROUBO DE CELULAR", rotulo: "Roubo de celular", cor: CORES.celular, tipo: "nat" },
-  { id: "FURTO DE CELULAR", rotulo: "Furto de celular", cor: "#ff8d85", tipo: "nat" },
-  { id: "HOMICÍDIO DOLOSO", rotulo: "Homicídio doloso", cor: CORES.letais, tipo: "nat" },
-  { id: "LATROCÍNIO", rotulo: "Latrocínio", cor: "#7c0e18", tipo: "nat" },
-  { id: "ROUBO - OUTROS", rotulo: "Roubo (geral)", cor: CORES.roubos, tipo: "nat" },
-  { id: "ROUBO DE VEÍCULO", rotulo: "Roubo de veículo", cor: "#d3404d", tipo: "nat" },
-  { id: "roubos::Transeunte", rotulo: "Roubo a transeunte*", cor: "#e9848d", tipo: "conduta" },
-  { id: "FURTO - OUTROS", rotulo: "Furto (geral)", cor: CORES.furtos, tipo: "nat" },
-  { id: "FURTO DE VEÍCULO", rotulo: "Furto de veículo", cor: "#6b737d", tipo: "nat" },
-  { id: "furtos::Transeunte", rotulo: "Furto a transeunte*", cor: "#c9d0d8", tipo: "conduta" },
-  { id: "ESTUPRO", rotulo: "Estupro", cor: CORES.genero, tipo: "nat" },
-  { id: "ESTUPRO DE VULNERÁVEL", rotulo: "Estupro de vulnerável", cor: "#b9bfc7", tipo: "nat" },
-  { id: "mulheres::violencia", rotulo: "Violência doméstica contra mulheres†", cor: "#ff5c8a", tipo: "mulheres_mensal" },
-  { id: "mulheres::feminicidio", rotulo: "Feminicídio (capital)†", cor: "#a82855", tipo: "feminicidio_mensal" },
+  { id: "ROUBO DE CELULAR", rotulo: "Roubo de celular", cor: "#1C4A94", tipo: "nat" },
+  { id: "FURTO DE CELULAR", rotulo: "Furto de celular", cor: "#6F95D1", tipo: "nat" },
+  { id: "ROUBO EM RESIDÊNCIA", rotulo: "Roubo em residência", cor: "#2E7D4F", tipo: "nat" },
+  { id: "FURTO EM RESIDÊNCIA", rotulo: "Furto em residência", cor: "#86B89A", tipo: "nat" },
+  { id: "ROUBO DE VEÍCULO", rotulo: "Roubo de veículo", cor: "#6B3FA0", tipo: "nat" },
+  { id: "FURTO DE VEÍCULO", rotulo: "Furto de veículo", cor: "#B39BD6", tipo: "nat" },
+  { id: "ROUBO - OUTROS", rotulo: "Roubos (geral)", cor: "#E0702F", tipo: "nat" },
+  { id: "FURTO - OUTROS", rotulo: "Furtos (geral)", cor: "#F2A96B", tipo: "nat" },
+  { id: "roubos::Transeunte", rotulo: "Roubo na rua", cor: "#8A5A2B", tipo: "conduta" },
+  { id: "furtos::Transeunte", rotulo: "Furto na rua", cor: "#C9A27A", tipo: "conduta" },
+  { id: "LESÃO CORPORAL DOLOSA", rotulo: "Agressão", cor: "#B8341F", tipo: "nat" },
+  { id: "HOMICÍDIO DOLOSO", rotulo: "Homicídio doloso", cor: "#6E1414", tipo: "nat" },
+  { id: "LATROCÍNIO", rotulo: "Latrocínio", cor: "#A33A5A", tipo: "nat" },
+  { id: "ESTUPRO", rotulo: "Estupro", cor: "#4B4A45", tipo: "nat" },
+  { id: "ESTUPRO DE VULNERÁVEL", rotulo: "Estupro de vulnerável", cor: "#9A9890", tipo: "nat" },
+  { id: "mulheres::violencia", rotulo: "Violência doméstica (mulheres)", cor: "#9C1F55", tipo: "mulheres_mensal" },
+  { id: "mulheres::feminicidio", rotulo: "Feminicídio", cor: "#D94A7B", tipo: "feminicidio_mensal" },
 ];
 
-const ativas = new Set(["ROUBO DE CELULAR", "FURTO DE CELULAR", "HOMICÍDIO DOLOSO", "ROUBO - OUTROS"]);
+const ativas = new Set(["ROUBO DE CELULAR", "FURTO DE CELULAR", "FURTO EM RESIDÊNCIA"]);
 let usarMM = true;
 let gPrincipal;
 const gMultiplos = new Map();
@@ -74,12 +77,9 @@ export async function initSeries() {
     renderPrincipal();
   });
 
-  document.getElementById("s-opcoes").addEventListener("click", (e) => {
-    const b = e.target.closest("button");
-    if (!b) return;
+  document.getElementById("s-mm").addEventListener("click", (e) => {
     usarMM = !usarMM;
-    b.classList.toggle("ativo", usarMM);
-    b.setAttribute("aria-pressed", usarMM);
+    e.currentTarget.setAttribute("aria-pressed", usarMM);
     renderPrincipal();
   });
 
@@ -120,7 +120,7 @@ function renderPrincipal() {
     tooltip: { ...TEMA.base.tooltip, trigger: "axis" },
     legend: {
       top: 0, left: 0, icon: "roundRect", itemWidth: 14, itemHeight: 4,
-      textStyle: { color: "#a9adb4", fontSize: 11 },
+      textStyle: { color: COR.texto2, fontSize: 11 },
       data: CATALOGO.filter((s) => ativas.has(s.id)).map((s) => s.rotulo),
       // seleção é pelos chips; clicar na legenda esconderia só a linha suavizada
       // e deixaria a "gêmea" bruta órfã no gráfico
@@ -139,7 +139,7 @@ function renderMultiplos() {
   // gMultiplos apontam, deixando-os órfãos (grid inteiro fica em branco)
   if (!alvo.dataset.montado) {
     alvo.innerHTML = CATALOGO.map((s) =>
-      `<article class="cartao"><h3 style="color:${s.cor}">${s.rotulo}</h3><div class="grafico" id="s-mini-${cssId(s.id)}"></div></article>`
+      `<article class="cartao" style="--cor-chip:${s.cor}"><h3>${s.rotulo}</h3><div class="grafico" id="s-mini-${cssId(s.id)}"></div></article>`
     ).join("");
     alvo.dataset.montado = "1";
   }
@@ -159,7 +159,7 @@ function renderMultiplos() {
       series: [{
         type: "line", data: bruta, symbol: "none",
         lineStyle: { color: s.cor, width: 1.6 },
-        areaStyle: { color: s.cor, opacity: 0.10 },
+        areaStyle: { color: s.cor, opacity: 0.12 },
       }],
     });
   }

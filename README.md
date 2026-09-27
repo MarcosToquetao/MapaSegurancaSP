@@ -1,13 +1,13 @@
 <div align="center">
 
-# 🗺️ MapaSegurançaSP
+<img src="web/public/logo.svg" alt="Cidade Segura — São Paulo, SP" width="360" />
 
-**Os dados de segurança pública de São Paulo, do bairro à esquina.**
+**Quão segura está a sua rua? Os dados de segurança pública de São Paulo, do distrito à esquina.**
 
-[![Acessar o site](https://img.shields.io/badge/🌐_Acessar_o_mapa-no_ar-2ea44f?style=for-the-badge)](https://marcostoquetao.github.io/MapaSegurancaSP/)
+[![Acessar o site](https://img.shields.io/badge/🌐_Acessar_o_mapa-no_ar-1C4A94?style=for-the-badge)](https://marcostoquetao.github.io/MapaSegurancaSP/)
 
-![Ocorrências](https://img.shields.io/badge/ocorrências-~2_milhões-blue?style=flat-square)
-![Período](https://img.shields.io/badge/período-jan%2F2022_a_mai%2F2026-orange?style=flat-square)
+![Ocorrências](https://img.shields.io/badge/ocorrências-~2%2C9_milhões-blue?style=flat-square)
+![Período](https://img.shields.io/badge/período-jan%2F2022_a_jul%2F2026-orange?style=flat-square)
 ![Atualização](https://img.shields.io/badge/atualização-mensal_automática-purple?style=flat-square)
 ![Fonte](https://img.shields.io/badge/fonte-SSP--SP-lightgrey?style=flat-square)
 
@@ -17,7 +17,7 @@
 
 ## 📍 Sobre o projeto
 
-O **MapaSegurançaSP** é uma plataforma interativa, aberta e gratuita que reúne os registros de ocorrências da **Secretaria de Segurança Pública do Estado de São Paulo (SSP-SP)** para a capital paulista e os apresenta de forma visual e navegável.
+O **Cidade Segura** é uma plataforma interativa, aberta e gratuita que reúne os registros de ocorrências da **Secretaria de Segurança Pública do Estado de São Paulo (SSP-SP)** para a capital paulista e os apresenta de forma visual e navegável.
 
 > [!TIP]
 > **Premissa de design:** *existem ruas perigosas em bairros seguros.*
@@ -29,15 +29,14 @@ O objetivo é duplo: servir como **ferramenta cidadã**, para que qualquer pesso
 
 ## ✨ O que você encontra no site
 
-| Aba | O que mostra |
+| Seção | O que mostra |
 |:---|:---|
-| 🗺️ **Mapa** | Distritos coloridos por intensidade e pontos de cada ocorrência no nível da rua |
-| 📊 **Painel** | Filtros cruzados: selecione um crime, região ou período e todos os gráficos se ajustam |
-| 📈 **Séries** | Evolução mensal dos indicadores ao longo do tempo |
-| 🕐 **Horários** | Distribuição das ocorrências por hora do dia e dia da semana |
+| 🗺️ **Mapa** | Distritos coloridos por intensidade, pontos de cada ocorrência no nível da rua e a **ficha do lugar**: busque sua rua (ou use sua localização) para ver o que aconteceu num raio de 500 m, ou toque num distrito para compará-lo à média da cidade |
+| 📊 **Explorar** | Filtros cruzados (tipo, região, local, hora, circunstância) e o mapa de calor dia da semana × hora |
+| 📈 **Tendências** | Evolução mensal dos indicadores ao longo do tempo |
 | 💜 **Mulheres** | Painel dedicado a violência doméstica e feminicídios |
 
-**Crimes cobertos:** crimes violentos letais, roubos, furtos, violência sexual e roubo/furto de celular (base dedicada da SSP).
+**Crimes cobertos:** roubo e furto de **celular**, de **casa** (residência) e de **veículo**, todos os roubos e furtos, **agressão** (lesão corporal dolosa) e **mortes violentas** (homicídio doloso, latrocínio e lesão seguida de morte). Crimes sexuais aparecem só nos gráficos: o endereço é anonimizado por lei.
 
 **Métricas:** números absolutos e **taxa por 100 mil habitantes** (Censo 2022), permitindo comparar regiões com populações muito diferentes de forma justa.
 
@@ -72,7 +71,7 @@ Todo o processamento acontece antes da publicação. O site final é **100% est�
 ## 🗂️ Organização do repositório
 
 ```
-MapaSegurancaSP/
+MapaSegurancaSP/   # o site se chama Cidade Segura; o repositório manteve o nome
 ├── docs/            # plano, fontes de dados, dicionário e metodologia
 ├── data/
 │   ├── external/    # malhas geográficas e população (SEADE/IBGE/GeoSampa)
@@ -103,6 +102,7 @@ A descrição completa de cada base está em [`docs/FONTES.md`](docs/FONTES.md).
 > O mapa mostra **ocorrências registradas**, não a totalidade dos crimes. Alguns tipos de crime, como furtos de menor valor e violência sexual, são historicamente **subnotificados**, e a taxa de registro pode variar entre regiões. Uma área com poucos registros não é necessariamente uma área segura.
 
 - As ocorrências são localizadas pelo **local do fato** informado no boletim, cuja precisão depende do preenchimento original.
+- Os números conferem com a **tabela oficial mensal da SSP** para a capital (checagem automática em `pipeline/09_checar.py`).
 - Taxas por 100 mil habitantes usam a **população residente**, o que pode superestimar o risco em regiões com grande circulação e poucos moradores, como o centro da cidade.
 
 ---

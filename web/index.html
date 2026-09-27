@@ -2,312 +2,240 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mapa da Segurança — São Paulo</title>
-  <meta name="description" content="Dados públicos de segurança da cidade de São Paulo: do panorama por região ao ponto exato das ocorrências. Fonte: SSP-SP." />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Cidade Segura — São Paulo, SP</title>
+  <meta name="description" content="Quão segura está a sua rua? Roubos, furtos, agressões e mortes violentas em São Paulo, do distrito ao endereço. Dados públicos da SSP-SP." />
+  <meta name="theme-color" content="#1C4A94" />
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+  <meta property="og:title" content="Cidade Segura — São Paulo, SP" />
+  <meta property="og:description" content="Quão segura está a sua rua? Dados públicos da SSP-SP, do distrito ao endereço." />
+  <meta property="og:image" content="https://marcostoquetao.github.io/MapaSegurancaSP/og.png" />
+  <meta property="og:type" content="website" />
+  <meta name="twitter:card" content="summary_large_image" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&family=IBM+Plex+Mono:wght@400;600&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Semi+Condensed:wght@500;600;700&family=JetBrains+Mono:wght@500&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 </head>
 <body>
   <div id="app">
     <header id="topo">
-      <a class="marca" href="#mapa">
-        <span class="placa">SP</span>
-        <span class="marca-texto">Mapa da <strong>Segurança</strong></span>
+      <a class="marca" href="#mapa" aria-label="Cidade Segura — início">
+        <span class="placa placa-mini">
+          <span class="placa-nome">Cidade Segura</span>
+          <span class="placa-sub">São Paulo, SP</span>
+        </span>
       </a>
       <nav id="abas" role="tablist" aria-label="Seções">
-        <button role="tab" data-aba="mapa" aria-selected="true">Mapa</button>
-        <button role="tab" data-aba="painel" aria-selected="false">Painel</button>
-        <button role="tab" data-aba="series" aria-selected="false">Séries</button>
-        <button role="tab" data-aba="horarios" aria-selected="false">Horários</button>
-        <button role="tab" data-aba="mulheres" aria-selected="false" class="aba-mulheres">Mulheres</button>
+        <button role="tab" data-aba="mapa" aria-selected="true">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg>Mapa</button>
+        <button role="tab" data-aba="explorar" aria-selected="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h16M7 16V9M12 16V5M17 16v-4"/></svg>Explorar</button>
+        <button role="tab" data-aba="tendencias" aria-selected="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>Tendências</button>
+        <button role="tab" data-aba="mulheres" aria-selected="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="5"/><path d="M12 14v7M9 18h6"/></svg>Mulheres</button>
       </nav>
-      <button id="abrir-fontes" class="fonte-dados" aria-haspopup="dialog"
-        title="Ver fontes e como contribuir">Fonte: SSP-SP · Censo 2022</button>
-      <button id="abrir-contato" class="botao-contato" aria-haspopup="dialog">Sobre & contato</button>
+      <button id="abrir-sobre" class="botao-icone" aria-haspopup="dialog" aria-label="Sobre e como ler os dados">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5v.5"/></svg>
+      </button>
     </header>
 
-    <dialog id="dialogo-contato" aria-labelledby="contato-titulo">
-      <h2 id="contato-titulo"><span class="placa">SP</span> Sobre esta plataforma</h2>
-      <p>
-        O <strong>Mapa da Segurança</strong> é um projeto independente e de código aberto
-        que compila dados públicos de segurança da cidade de São Paulo (SSP-SP e IBGE)
-        em visualizações acessíveis a qualquer pessoa.
-      </p>
-      <p class="contato-autoria">
-        Idealizado e mantido por <strong>Marcos Lemes Toquetão</strong>.
-      </p>
-      <p>
-        Encontrou um erro, tem sugestão de melhoria, conhece uma nova fonte de dados ou
-        quer propor uma análise? Toda contribuição é bem-vinda:
-      </p>
-      <ul class="contato-canais">
-        <li><a href="mailto:marcostoquetao@gmail.com?subject=Mapa%20da%20Seguran%C3%A7a%20SP">
-          ✉ marcostoquetao@gmail.com</a></li>
-        <li><a href="https://instagram.com/marcosvlemes" target="_blank" rel="noopener noreferrer">
-          ◎ @marcosvlemes</a></li>
-        <li><a href="https://github.com/MarcosToquetao/MapaSegurancaSP" target="_blank" rel="noopener noreferrer">
-          ⌥ código-fonte e dados no GitHub</a></li>
+    <dialog id="dialogo-sobre" aria-labelledby="sobre-titulo">
+      <div class="placa placa-grande">
+        <span class="placa-nome" id="sobre-titulo">Cidade Segura</span>
+        <span class="placa-sub">São Paulo, SP</span>
+      </div>
+      <p>Projeto independente e de código aberto que organiza os dados públicos de segurança
+        da cidade de São Paulo para qualquer pessoa consultar a própria rua. Não é um canal
+        oficial do governo. Em emergência, ligue <strong>190</strong>. Violência contra a
+        mulher: <strong>180</strong>.</p>
+
+      <h3>Como ler os dados</h3>
+      <ul class="lista-leitura">
+        <li><strong>Roubo</strong> tem ameaça ou violência. <strong>Furto</strong> acontece sem a vítima perceber ou sem ameaça.</li>
+        <li><strong>Casa</strong> reúne roubos e furtos cujo local registrado é residência, apartamento ou condomínio. A SSP não publica "invasão de domicílio" separadamente.</li>
+        <li><strong>Todos</strong> já inclui celular e casa. Os números de categorias diferentes não devem ser somados.</li>
+        <li><strong>Mortes violentas</strong> são homicídio doloso, latrocínio e lesão corporal seguida de morte.</li>
+        <li>A <strong>taxa por 100 mil habitantes</strong> (Censo 2022) permite comparar distritos de tamanhos diferentes. Períodos menores que um ano são anualizados.</li>
+        <li>Os pontos no mapa usam a coordenada do boletim, que às vezes é a da quadra ou da rua, e não a do número exato. Cerca de 18% dos registros vêm sem coordenada e só entram nos totais por distrito.</li>
+        <li>Crimes sexuais são anonimizados por lei e não aparecem no mapa. Agressões dentro de casa ficam fora dos pontos para proteger as vítimas, mas contam nos totais por distrito.</li>
+        <li>No centro (Sé, República), a taxa por habitante fica alta porque muita gente circula e pouca gente mora ali.</li>
+        <li>O filtro de horário vale para os pontos. Os distritos sempre mostram o dia inteiro.</li>
+        <li>Os números mostram os boletins registrados, não todos os crimes. Furtos e violência doméstica são os mais subnotificados.</li>
+        <li>O recorte é pelo local do fato. Os totais conferem com a tabela oficial mensal da SSP.</li>
       </ul>
-      <h3 class="contato-subtitulo">Fontes dos dados</h3>
-      <ul class="contato-fontes">
-        <li><a href="https://www.ssp.sp.gov.br/estatistica/consultas" target="_blank" rel="noopener noreferrer">
-          SSP-SP — Dados criminais (microdados de ocorrências, 2022–2026)</a></li>
-        <li><a href="https://www.ssp.sp.gov.br/estatistica/consultas" target="_blank" rel="noopener noreferrer">
-          SSP-SP — Celulares subtraídos (roubo/furto de celular)</a></li>
-        <li><a href="https://www.ssp.sp.gov.br/estatistica/violencia-contra-a-mulher" target="_blank" rel="noopener noreferrer">
-          SSP-SP — Vítimas de violência doméstica (2024+)</a></li>
-        <li><a href="https://www.ssp.sp.gov.br/estatistica/violencia-contra-a-mulher" target="_blank" rel="noopener noreferrer">
-          SSP-SP — Tabela oficial de violência contra a mulher (feminicídios, 2019+)</a></li>
-        <li><a href="https://geosampa.prefeitura.sp.gov.br" target="_blank" rel="noopener noreferrer">
-          GeoSampa — malhas de distritos e subprefeituras</a></li>
-        <li><a href="https://sidra.ibge.gov.br/tabela/9923" target="_blank" rel="noopener noreferrer">
-          IBGE/SIDRA — população por distrito (Censo 2022)</a></li>
+
+      <h3>Fontes</h3>
+      <ul class="lista-fontes">
+        <li><a href="https://www.ssp.sp.gov.br/estatistica/consultas" target="_blank" rel="noopener noreferrer">SSP-SP · dados criminais e celulares subtraídos (2022+)</a></li>
+        <li><a href="https://www.ssp.sp.gov.br/estatistica/violencia-contra-a-mulher" target="_blank" rel="noopener noreferrer">SSP-SP · violência contra a mulher</a></li>
+        <li><a href="https://geosampa.prefeitura.sp.gov.br" target="_blank" rel="noopener noreferrer">GeoSampa · distritos e subprefeituras</a></li>
+        <li><a href="https://sidra.ibge.gov.br/tabela/9923" target="_blank" rel="noopener noreferrer">IBGE · população por distrito (Censo 2022)</a></li>
       </ul>
-      <p class="contato-nota">Os dados brutos são públicos e as transformações são
-        reproduzíveis: todo o pipeline está no repositório.</p>
-      <form method="dialog"><button class="fechar-contato">fechar</button></form>
+      <p class="atualizado" id="sobre-atualizado"></p>
+
+      <h3>Contato</h3>
+      <p class="contato">Mantido por <strong>Marcos Lemes Toquetão</strong> ·
+        <a href="mailto:marcostoquetao@gmail.com?subject=Cidade%20Segura">e-mail</a> ·
+        <a href="https://instagram.com/marcosvlemes" target="_blank" rel="noopener noreferrer">Instagram</a> ·
+        <a href="https://github.com/MarcosToquetao/MapaSegurancaSP" target="_blank" rel="noopener noreferrer">código e dados</a></p>
+      <form method="dialog"><button class="botao-primario">Fechar</button></form>
     </dialog>
 
-    <!-- ABA 1 · MAPA -->
-    <section id="view-mapa" class="view ativa" role="tabpanel">
-      <div id="mapa"></div>
+    <main>
+      <!-- MAPA -->
+      <section id="view-mapa" class="view ativa" role="tabpanel" aria-label="Mapa">
+        <div id="mapa" aria-label="Mapa de ocorrências"></div>
+        <div id="m-carregando" class="carregando">Carregando o mapa…</div>
 
-      <aside id="controles-mapa" class="flutuante">
-        <p class="rotulo-grupo">Onde</p>
-        <div class="busca-caixa">
-          <input id="m-busca" type="search" placeholder="rua ou CEP…" autocomplete="off"
-                 aria-label="Buscar rua ou CEP" />
-          <ul id="m-busca-resultados"></ul>
-        </div>
-        <p class="rotulo-grupo">O quê</p>
-        <div id="m-grupos" class="chips"></div>
-        <p class="rotulo-grupo">Quando · mês e ano</p>
-        <div class="linha-controles">
-          <select id="m-ano" aria-label="Ano"></select>
-          <select id="m-mes" aria-label="Mês"></select>
-        </div>
-        <p class="rotulo-grupo">Quando · período do dia</p>
-        <div id="m-periodo" class="chips" aria-label="Período do dia"></div>
-        <p class="rotulo-grupo">Como contar</p>
-        <div id="m-metrica" class="chips">
-          <button data-metrica="taxa" class="ativo">taxa /100k</button>
-          <button data-metrica="absoluto">absoluto</button>
-        </div>
-        <p class="nota" id="m-dica">Aproxime o zoom para ver as ocorrências uma a uma.</p>
-        <p class="nota aviso" id="m-aviso-genero" hidden>
-          Violência sexual tem o endereço anonimizado por lei — aparece no agregado
-          por distrito, não como pontos.
-        </p>
-        <p class="nota aviso" id="m-aviso-periodo" hidden>
-          O filtro de horário vale para o mapa de pontos e o heatmap; o agregado
-          por distrito segue mostrando o período inteiro.
-        </p>
-      </aside>
+        <div id="m-legenda" class="legenda" aria-live="polite"></div>
+        <button id="m-perto" class="botao-mapa" aria-label="Usar minha localização">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/><circle cx="12" cy="12" r="7.5"/></svg>
+        </button>
 
-      <aside id="painel-mapa" class="flutuante">
-        <div id="m-kpis"></div>
-        <div id="m-ranking"></div>
-      </aside>
-    </section>
+        <aside id="gaveta" data-estado="espiada" aria-label="Filtros e detalhes">
+          <section class="painel-controles">
+            <button class="alca" aria-label="Expandir ou recolher painel" aria-expanded="false"><span></span></button>
+            <div class="busca-caixa">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/></svg>
+              <input id="m-busca" type="search" placeholder="Rua, bairro ou CEP" autocomplete="off"
+                     aria-label="Buscar rua, bairro ou CEP" enterkeyhint="search" />
+              <ul id="m-busca-resultados" role="listbox"></ul>
+            </div>
+            <div id="m-tipos" class="chips rolagem" role="radiogroup" aria-label="Tipo de crime"></div>
+            <div id="m-modos" class="segmentado" role="radiogroup" aria-label="Roubo ou furto"></div>
+            <div class="linha-quando">
+              <select id="m-ano" aria-label="Ano"></select>
+              <select id="m-mes" aria-label="Mês"></select>
+              <select id="m-periodo" aria-label="Período do dia"></select>
+            </div>
+            <div id="m-metrica" class="segmentado discreto" role="radiogroup" aria-label="Como contar">
+              <button data-metrica="taxa" aria-checked="true" role="radio">por 100 mil hab.</button>
+              <button data-metrica="absoluto" aria-checked="false" role="radio">total</button>
+            </div>
+          </section>
+          <section class="painel-ficha" id="ficha" aria-live="polite"></section>
+        </aside>
+      </section>
 
-    <!-- ABA 2 · PAINEL (crossfilter) -->
-    <section id="view-painel" class="view" role="tabpanel" hidden>
-      <div class="miolo">
-        <header class="p-intro">
-          <h2>Explore os dados</h2>
-          <p>Base principal de ocorrências da cidade de São Paulo (2022–2026).
-            <strong>Clique em qualquer barra para filtrar — todos os gráficos e números
-            se cruzam.</strong> Ex.: clique em "noite" e depois numa região para ver o
-            perfil de crime daquele recorte.</p>
-        </header>
-
-        <div id="p-highlights" class="grade-kpis"></div>
-
-        <div class="barra-filtros p-barra">
-          <div id="p-anos" class="chips" aria-label="Ano"></div>
-          <div id="p-filtros-ativos" class="chips"></div>
-          <button id="p-limpar" hidden>limpar filtros</button>
-        </div>
-
-        <div class="grade-cartoes">
-          <article class="cartao alto">
-            <h2>Tipo de crime</h2>
-            <div id="p-tipo" class="grafico"></div>
-          </article>
-          <article class="cartao">
-            <h2>Região <span class="sufixo">taxa /100 mil hab./ano</span></h2>
-            <div id="p-zona" class="grafico"></div>
-          </article>
-          <article class="cartao">
-            <h2>Hora do dia</h2>
-            <div id="p-hora" class="grafico"></div>
-          </article>
-          <article class="cartao largo">
-            <h2>Evolução mensal <span class="sufixo" id="p-evolucao-ctx"></span></h2>
-            <div id="p-evolucao" class="grafico"></div>
-          </article>
-          <article class="cartao">
-            <h2>Circunstância <span class="sufixo">quando especificada pela fonte</span></h2>
-            <div id="p-conduta" class="grafico"></div>
-          </article>
-          <article class="cartao">
-            <h2>Local do crime</h2>
-            <div id="p-local" class="grafico"></div>
-          </article>
-        </div>
-
-        <p class="nota" id="p-cobertura"></p>
-      </div>
-    </section>
-
-    <!-- ABA 3 · SÉRIES -->
-    <section id="view-series" class="view" role="tabpanel" hidden>
-      <div class="miolo">
-        <div class="barra-filtros">
-          <div id="s-series" class="chips multi" aria-label="Séries exibidas"></div>
-          <div id="s-opcoes" class="chips">
-            <button data-op="mm" aria-pressed="true" class="ativo">média móvel 3m</button>
+      <!-- EXPLORAR (crossfilter + quando acontece) -->
+      <section id="view-explorar" class="view" role="tabpanel" aria-label="Explorar" hidden>
+        <div class="miolo">
+          <div class="barra-filtros">
+            <div id="p-anos" class="chips rolagem" aria-label="Ano"></div>
+            <div id="p-filtros-ativos" class="chips rolagem"></div>
+            <button id="p-limpar" class="botao-texto" hidden>Limpar filtros</button>
+          </div>
+          <div id="p-highlights" class="grade-kpis"></div>
+          <div class="grade-cartoes">
+            <article class="cartao alto">
+              <h2>Tipo de crime</h2>
+              <div id="p-tipo" class="grafico"></div>
+            </article>
+            <article class="cartao">
+              <h2>Região <span class="sufixo">por 100 mil hab./ano</span></h2>
+              <div id="p-zona" class="grafico"></div>
+            </article>
+            <article class="cartao">
+              <h2>Local</h2>
+              <div id="p-local" class="grafico"></div>
+            </article>
+            <article class="cartao largo">
+              <h2>Quando acontece <span class="sufixo">dia da semana × hora</span></h2>
+              <div id="p-semana" class="grafico"></div>
+            </article>
+            <article class="cartao">
+              <h2>Hora do dia</h2>
+              <div id="p-hora" class="grafico"></div>
+            </article>
+            <article class="cartao">
+              <h2>Circunstância</h2>
+              <div id="p-conduta" class="grafico"></div>
+            </article>
+            <article class="cartao largo">
+              <h2>Mês a mês</h2>
+              <div id="p-evolucao" class="grafico"></div>
+            </article>
           </div>
         </div>
-        <article class="cartao largo">
-          <h2>Ocorrências por mês <span class="sufixo">cidade de São Paulo</span></h2>
-          <div id="s-grafico" class="grafico grande"></div>
-        </article>
-        <div id="s-multiplos" class="grade-multiplos"></div>
-        <p class="nota">
-          Roubo/furto de celular vem da base "Celulares subtraídos" da SSP (BOs com ao menos
-          um celular levado, consumados) e se sobrepõe parcialmente a roubos/furtos gerais.
-          *Transeunte = circunstância de crime de rua, recorte dos roubos/furtos gerais.
-          †Violência doméstica e feminicídio vêm das bases dedicadas à mulher (não da base
-          principal de ocorrências): violência doméstica só tem dados a partir de 2024;
-          feminicídio é a série oficial da SSP, recorte capital.
-        </p>
-      </div>
-    </section>
+      </section>
 
-    <!-- ABA 4 · HORÁRIOS -->
-    <section id="view-horarios" class="view" role="tabpanel" hidden>
-      <div class="miolo">
-        <div class="barra-filtros">
-          <div id="h-grupos" class="chips"></div>
-        </div>
-        <div class="grade-cartoes">
+      <!-- TENDÊNCIAS -->
+      <section id="view-tendencias" class="view" role="tabpanel" aria-label="Tendências" hidden>
+        <div class="miolo">
+          <div class="barra-filtros">
+            <div id="s-series" class="chips multi rolagem" aria-label="Séries exibidas"></div>
+            <button id="s-mm" class="botao-texto" aria-pressed="true">Suavizar (média de 3 meses)</button>
+          </div>
           <article class="cartao largo">
-            <h2>Quando acontece <span class="sufixo" id="h-contexto"></span></h2>
-            <div id="h-semana" class="grafico grande"></div>
+            <h2>Ocorrências por mês <span class="sufixo">cidade de São Paulo</span></h2>
+            <div id="s-grafico" class="grafico grande"></div>
           </article>
-          <article class="cartao">
-            <h2>Perfil de 24 horas</h2>
-            <div id="h-perfil" class="grafico"></div>
-          </article>
-          <article class="cartao">
-            <h2>Distritos mais perigosos <span class="sufixo" id="h-ranking-sufixo"></span></h2>
-            <div class="chips" id="h-periodos"></div>
-            <div id="h-ranking" class="grafico" style="height:220px"></div>
-          </article>
+          <div id="s-multiplos" class="grade-multiplos"></div>
         </div>
-        <p class="nota" id="h-cobertura"></p>
-      </div>
-    </section>
+      </section>
 
-    <!-- ABA 5 · MULHERES -->
-    <section id="view-mulheres" class="view tema-rosa" role="tabpanel" hidden>
-      <div class="miolo">
-        <header class="w-intro">
-          <h2>Violência doméstica contra mulheres</h2>
-          <p>
-            Este painel usa a base de <strong>vítimas de violência doméstica</strong> da
-            SSP-SP: cada registro é uma vítima mulher em um boletim de ocorrência cujo fato
-            aconteceu na capital, desde 2024 — ameaça, perseguição, lesão corporal, injúria,
-            violência psicológica, patrimonial e descumprimento de medida protetiva.
-            Ela <strong>não</strong> reúne todos os BOs com vítimas mulheres: estupros e
-            feminicídios são publicados pela SSP em separado (veja o cartão de série oficial
-            e o rodapé), e crimes patrimoniais como roubo e furto estão nas demais abas.
-            <strong>Todos os números abaixo reagem aos filtros: clique em qualquer
-            barra, fatia ou zona para cruzar variáveis.</strong>
-          </p>
-        </header>
-
-        <div id="w-highlights" class="grade-kpis"></div>
-
-        <div class="barra-filtros w-barra">
-          <div id="w-filtros-ativos" class="chips"></div>
-          <button id="w-filtros-limpar" hidden>limpar filtros</button>
+      <!-- MULHERES -->
+      <section id="view-mulheres" class="view tema-rosa" role="tabpanel" aria-label="Mulheres" hidden>
+        <div class="miolo">
+          <header class="cabecalho-secao">
+            <h1>Violência doméstica contra mulheres</h1>
+            <p>Vítimas mulheres em boletins de violência doméstica na capital, desde 2024. Toque em qualquer barra para filtrar.</p>
+          </header>
+          <div class="barra-filtros w-barra">
+            <div id="w-filtros-ativos" class="chips rolagem"></div>
+            <button id="w-filtros-limpar" class="botao-texto" hidden>Limpar filtros</button>
+          </div>
+          <div id="w-highlights" class="grade-kpis"></div>
+          <div class="grade-cartoes">
+            <article class="cartao">
+              <h2>Por região <span class="sufixo">por 100 mil hab.</span></h2>
+              <div id="w-zonas" class="grafico" style="height:320px"></div>
+            </article>
+            <article class="cartao">
+              <h2>Idade da vítima</h2>
+              <div id="w-faixa" class="grafico" style="height:320px"></div>
+            </article>
+            <article class="cartao">
+              <h2>Quem agrediu</h2>
+              <div id="w-relacao" class="grafico"></div>
+            </article>
+            <article class="cartao">
+              <h2>Tipo de violência</h2>
+              <div id="w-grupo" class="grafico"></div>
+            </article>
+            <article class="cartao">
+              <h2>Feminicídios na capital <span class="sufixo">série oficial · não filtra</span></h2>
+              <div id="w-feminicidio" class="grafico"></div>
+            </article>
+            <article class="cartao">
+              <h2>Onde acontece</h2>
+              <div id="w-local" class="grafico"></div>
+            </article>
+            <article class="cartao">
+              <h2>Hora do dia</h2>
+              <div id="w-hora" class="grafico"></div>
+            </article>
+            <article class="cartao">
+              <h2>Orientação sexual declarada</h2>
+              <div id="w-orientacao" class="grafico"></div>
+            </article>
+          </div>
+          <details class="leitura">
+            <summary>Como ler estes dados</summary>
+            <ul>
+              <li id="w-cobertura"></li>
+              <li>Estupros e feminicídios não estão nesta base. Os feminicídios vêm da tabela oficial da SSP (só a capital) e o ano corrente (*) está incompleto.</li>
+              <li>Para proteger as vítimas, a SSP anonimiza parte dos endereços. Por isso o painel usa macrorregiões, e não pontos.</li>
+              <li>Um boletim pode ter mais de uma vítima: a unidade aqui é a vítima.</li>
+              <li>Orientação sexual é autodeclarada e está como "ignorado" em quase metade dos registros. A SSP não publica o sexo nem a idade do agressor.</li>
+              <li>Violência doméstica é muito subnotificada: os números mostram os boletins, não todos os casos.</li>
+            </ul>
+          </details>
         </div>
-
-        <div class="grade-cartoes">
-          <article class="cartao">
-            <h2>Registros por macrorregião <span class="sufixo">taxa /100 mil hab.</span></h2>
-            <div id="w-zonas" class="grafico" style="height:320px"></div>
-          </article>
-          <article class="cartao">
-            <h2>Idade da vítima</h2>
-            <div id="w-faixa" class="grafico" style="height:320px"></div>
-          </article>
-          <article class="cartao">
-            <h2>Relação com o agressor</h2>
-            <div id="w-relacao" class="grafico"></div>
-          </article>
-          <article class="cartao">
-            <h2>Tipo de violência <span class="sufixo">tipologia da Lei Maria da Penha</span></h2>
-            <div id="w-grupo" class="grafico"></div>
-          </article>
-          <article class="cartao">
-            <h2>Feminicídios na capital <span class="sufixo">série oficial SSP · não reage aos filtros</span></h2>
-            <div id="w-feminicidio" class="grafico"></div>
-            <p class="nota">Apenas o <strong>município de São Paulo</strong>. A tabela oficial da
-              SSP também publica "Demacro" (demais municípios da Região Metropolitana) e
-              "Interior" — somando os três dá o total do estado, bem maior que o número aqui.</p>
-          </article>
-          <article class="cartao">
-            <h2>Onde acontece</h2>
-            <div id="w-local" class="grafico"></div>
-          </article>
-          <article class="cartao">
-            <h2>Hora do dia</h2>
-            <div id="w-hora" class="grafico"></div>
-          </article>
-          <article class="cartao">
-            <h2>Orientação sexual declarada</h2>
-            <div id="w-orientacao" class="grafico"></div>
-          </article>
-        </div>
-
-        <footer class="w-rodape">
-          <h3>Limitações e cuidados de leitura</h3>
-          <ul>
-            <li id="w-cobertura"></li>
-            <li>Para proteger as vítimas, a SSP anonimiza endereços em parte dos registros —
-              por isso este painel usa macrorregiões, e não pontos no mapa.</li>
-            <li>Violência doméstica é historicamente <strong>subnotificada</strong>: os números
-              refletem os boletins registrados, não a totalidade dos casos.</li>
-            <li>A base cobre registros a partir de 2024 (criação do recorte pela SSP) e o ano
-              corrente está incompleto.</li>
-            <li>Orientação sexual e identidade de gênero são autodeclaradas e vêm marcadas
-              como "ignorado" em quase metade dos registros.</li>
-            <li>Um mesmo boletim pode conter mais de uma vítima ou natureza; a unidade aqui é
-              o registro de vítima.</li>
-            <li>O recorte é pelo <strong>local do fato</strong> (circunscrição), não pelo local
-              de registro — boletins online da Delegacia da Mulher entram somente quando o
-              fato ocorreu na capital.</li>
-            <li>A base de microdados <strong>não contém crimes letais</strong>: o gráfico de
-              feminicídios vem da tabela agregada oficial da SSP (recorte capital) e por isso
-              não reage aos filtros. O ano corrente (*) está incompleto.</li>
-            <li>A SSP <strong>não publica dados do autor</strong> (sexo, idade) nos microdados —
-              apenas a relação da vítima com o agressor. Por isso não é possível filtrar por
-              sexo do agressor.</li>
-            <li>Estupros não estão nesta base — seguem na categoria "Violência sexual"
-              das demais abas, com endereço anonimizado por lei.</li>
-          </ul>
-          <p>Fontes: SSP-SP (base de vítimas de violência doméstica, atualização mensal;
-            feminicídios: tabela oficial de violência contra a mulher) ·
-            população: Censo 2022/IBGE. Em emergência, ligue <strong>190</strong>;
-            denúncias: <strong>180</strong> (Central de Atendimento à Mulher).</p>
-        </footer>
-      </div>
-    </section>
+      </section>
+    </main>
   </div>
   <script type="module" src="/src/main.js"></script>
 </body>
