@@ -47,5 +47,8 @@ jobs:
             echo "sem mudanças nos dados"
           else
             git commit -m "dados: atualização automática $(date -u +%Y-%m)"
+            # alguém pode ter dado push durante as ~40 min do pipeline: reaplica
+            # o commit de dados por cima (em conflito, os dados recém-gerados vencem)
+            git pull --rebase -X theirs
             git push
           fi
