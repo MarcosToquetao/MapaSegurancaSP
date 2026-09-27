@@ -44,17 +44,21 @@ export function initMapa() {
   new ResizeObserver(() => mapa.resize()).observe(document.getElementById("mapa"));
 
   mapa.on("load", () => {
-    // camadas de dados entram por baixo dos rótulos de rua do mapa-base
-    const rotulos = mapa.getStyle().layers.find((l) => l.type === "symbol")?.id;
+    // coroplético vai logo acima da água (ruas e prédios do mapa-base por cima dele);
+    // pontos e contorno vão acima de ruas/prédios e abaixo só dos nomes de rua
+    const camadas = mapa.getStyle().layers;
+    const rotulos = camadas.find((l) => l.type === "symbol")?.id;
+    const ultimaGeo = camadas.findLastIndex((l) => l.type !== "symbol");
+    const nomesRua = camadas.slice(ultimaGeo + 1).find((l) => l.type === "symbol")?.id;
     mapa.addSource("distritos", { type: "geojson", data: dados.distritos, promoteId: "cd_distrito" });
     mapa.addLayer({ id: "coropletico", type: "fill", source: "distritos",
       paint: { "fill-color": RAMPA[0], "fill-opacity": 0.72 } }, rotulos);
     mapa.addLayer({ id: "coropletico-borda", type: "line", source: "distritos",
       paint: { "line-color": "#ffffff", "line-width": ["interpolate", ["linear"], ["zoom"], 9, 0.6, 13, 1.6] } }, rotulos);
     mapa.addLayer({ id: "distrito-foco", type: "line", source: "distritos",
-      paint: { "line-color": "#1C4A94", "line-width": 3 }, filter: ["==", ["get", "cd_distrito"], ""] }, rotulos);
+      paint: { "line-color": "#1C4A94", "line-width": 3 }, filter: ["==", ["get", "cd_distrito"], ""] }, nomesRua);
 
-    if (dados.pontosMeta) adicionarPontos(rotulos);
+    if (dados.pontosMeta) adicionarPontos(nomesRua);
     interacoesDistrito();
     pintar();
     renderFicha(); // cores da ficha dependem dos quintis calculados em pintar()
