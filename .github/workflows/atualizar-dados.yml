@@ -1,5 +1,5 @@
 # Atualização mensal: baixa dados novos da SSP, reprocessa tudo e comita os
-# artefatos de volta no repo (o push dispara o workflow de deploy).
+# artefatos de volta no repo e dispara o deploy (o push do bot não o dispara sozinho).
 # A SSP atualiza os xlsx ao longo do mês seguinte; rodamos dia 5.
 name: Atualizar dados
 
@@ -10,6 +10,7 @@ on:
 
 permissions:
   contents: write
+  actions: write  # disparar o deploy (push com GITHUB_TOKEN não dispara outros workflows)
 
 jobs:
   pipeline:
@@ -39,6 +40,8 @@ jobs:
           python pipeline/09_checar.py
 
       - name: Comitar artefatos atualizados
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -51,4 +54,5 @@ jobs:
             # o commit de dados por cima (em conflito, os dados recém-gerados vencem)
             git pull --rebase -X theirs
             git push
+            gh workflow run deploy.yml --ref main
           fi
