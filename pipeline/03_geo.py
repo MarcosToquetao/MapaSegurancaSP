@@ -29,18 +29,20 @@ def norm(nome: str) -> str:
     return "".join(c for c in unicodedata.normalize("NFD", nome) if not unicodedata.combining(c))
 
 
-def carregar_populacao() -> dict[str, int]:
+def carregar_populacao() -> tuple[dict[str, int], dict[str, str]]:
+    """população Censo 2022 + grafia com acentos (a malha do GeoSampa vem sem)."""
     rows = json.load(open(EXT / "sidra_9923_raw.json", encoding="utf-8"))[1:]
-    tot = {}
+    tot, grafia = {}, {}
     for r in rows:
         if r["D4N"] == "Total":
             tot[norm(r["D1N"])] = int(r["V"])
+            grafia[norm(r["D1N"])] = r["D1N"].split(" - ")[0].strip().upper()
     assert len(tot) == 96, f"esperava 96 distritos no SIDRA, veio {len(tot)}"
-    return tot
+    return tot, grafia
 
 
 def preparar_malhas() -> gpd.GeoDataFrame:
-    pop = carregar_populacao()
+    pop, grafia = carregar_populacao()
 
     dist = gpd.read_file(EXT / "distritos_geosampa.geojson").set_crs(31983).to_crs(4326)
     dist = dist.rename(columns={
@@ -49,6 +51,7 @@ def preparar_malhas() -> gpd.GeoDataFrame:
         "cd_identificador_subprefeitura": "id_subprefeitura",
     })[["cd_distrito", "nome", "id_subprefeitura", "geometry"]]
     dist["pop_2022"] = dist["nome"].map(lambda n: pop.get(norm(n)))
+    dist["nome"] = dist["nome"].map(lambda n: grafia.get(norm(n), n))
     sem_pop = dist[dist["pop_2022"].isna()]["nome"].tolist()
     assert not sem_pop, f"distritos sem população casada: {sem_pop}"
 

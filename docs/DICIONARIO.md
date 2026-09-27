@@ -40,7 +40,31 @@ Nota: as colunas de circunscrição vêm com grafia `NOME_*_CIRCUNCRIÇÃO` (typ
 | `DATA_COMUNICACAO_BO` | `DATA_REGISTRO` |
 | — (ausente) | `DESCR_TIPOLOCAL` |
 
-## Mapeamento NATUREZA_APURADA → categorias do MVP
+## Mapeamento NATUREZA_APURADA → categorias (revisado em 2026-09-26)
+
+| Categoria no site | Origem |
+|---|---|
+| Celular (roubo/furto) | base CelularesSubtraidos (RUBRICA "Roubo…"/"Furto…", consumados, 1 por BO) |
+| Casa (roubo/furto) | recorte `em_casa` de ROUBO/FURTO - OUTROS (ver FONTES.md) |
+| Veículo | ROUBO DE VEÍCULO / FURTO DE VEÍCULO |
+| Todos os roubos/furtos | roubos = ROUBO - OUTROS + DE VEÍCULO + DE CARGA; furtos idem |
+| Agressão | LESÃO CORPORAL DOLOSA — pontos **sem** as ocorrências dentro de casa (privacidade de vítimas de violência doméstica) |
+| Mortes violentas | HOMICÍDIO DOLOSO + LATROCÍNIO + LESÃO CORPORAL SEGUIDA DE MORTE |
+| (fora do mapa) | ESTUPRO / ESTUPRO DE VULNERÁVEL — endereço anonimizado por lei |
+| (só no Explorar) | HOMICÍDIO DOLOSO POR ACIDENTE DE TRÂNSITO — saiu de "mortes violentas" (não é morte violenta intencional) |
+
+**Conferência com a tabela oficial (capital, 2025):** latrocínio, lesão seguida de morte, lesão
+corporal dolosa, estupros, roubos (outros, veículo, carga) e furto de veículo batem 100% com a tabela
+mensal oficial da SSP; furto - outros difere em −0,04% e homicídio doloso em −2,0% (491 × 501 —
+a tabela oficial conta alguns homicídios que no microdado constam com outra natureza apurada).
+Checagem automatizada em `pipeline/09_checar.py` (roda no CI).
+
+**Recorte "Casa" (2022 → 2025):** furtos em residência caem de 13,5 mil para 7,3 mil/ano e roubos
+de 1,9 mil para 1,2 mil. A queda aparece tanto pelo campo de circunstância (`DESCR_CONDUTA`,
+−57%) quanto pelo de local (`DESCR_SUBTIPOLOCAL`), então não é artefato de preenchimento de um
+único campo.
+
+### Mapeamento original do MVP (1º sem/2025)
 
 Contagens = capital, 1º sem/2025.
 
@@ -51,7 +75,7 @@ Contagens = capital, 1º sem/2025.
 | **Furtos** | FURTO - OUTROS (123.683) · FURTO DE VEÍCULO (19.794) · FURTO DE CARGA (46) | 143.523 |
 | **Violência de gênero** | ESTUPRO (400) · ESTUPRO DE VULNERÁVEL (1.082) | 1.482 |
 
-Pendências de classificação:
+Pendências de classificação (histórico — resolvidas):
 - **Feminicídio**: verificar se aparece em `RUBRICA`/`DESCR_CONDUTA` dos homicídios dolosos.
 - **Violência doméstica (lesão corporal)**: LESÃO CORPORAL DOLOSA (19.295) — checar recorte por conduta/rubrica (Maria da Penha).
 - **Furto/roubo de celular**: NÃO isolável nesta base (`DESCR_CONDUTA` traz circunstância, não objeto).

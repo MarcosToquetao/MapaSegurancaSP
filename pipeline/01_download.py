@@ -50,6 +50,8 @@ def baixar(nome: str, url: str, tentativas: int = 8) -> None:
             tamanho_remoto = int(head.headers.get("Content-Length", 0))
             break
         except requests.exceptions.RequestException as e:
+            if getattr(e.response, "status_code", None) == 404:  # arquivo removido: não adianta insistir
+                raise RuntimeError(f"[{nome}] 404 — arquivo não existe mais em {url}") from e
             print(f"[{nome}] HEAD falhou ({type(e).__name__}); "
                   f"nova tentativa em {10 * tentativa}s", flush=True)
             time.sleep(10 * tentativa)
@@ -93,9 +95,22 @@ def main() -> None:
     anos = [int(a) for a in sys.argv[1:]] or ANOS_DISPONIVEIS
     for base, url in BASES.items():
         for ano in anos:
-            baixar(f"{base}_{ano}", url.format(ano=ano))
+            try:
+                baixar(f"{base}_{ano}", url.format(ano=ano))
+            except RuntimeError as e:
+                # na virada do ano o arquivo do ano novo ainda não existe; anos
+                # anteriores faltando, porém, derrubam a atualização
+                if ano != date.today().year or "404" not in str(e):
+                    raise
+                print(f"AVISO: {e} — ano corrente ainda não publicado", flush=True)
+    # bases únicas não travam a atualização: a SSP já deixou o link da base de
+    # violência doméstica em 404 por meses (ago–set/2026) — segue com o arquivo
+    # local, se houver, e os scripts dependentes mantêm os artefatos publicados
     for nome, url in BASES_UNICAS.items():
-        baixar(nome, url)
+        try:
+            baixar(nome, url)
+        except RuntimeError as e:
+            print(f"AVISO: {e} — seguindo sem atualizar esta base", flush=True)
 
 
 if __name__ == "__main__":

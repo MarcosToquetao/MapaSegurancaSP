@@ -135,6 +135,9 @@ def montar_zonas_geojson() -> gpd.GeoDataFrame:
 
 
 def main() -> None:
+    if not RAW.exists():  # download falhou (ex.: 404 na SSP) — não derruba o CI
+        print(f"{RAW.name} ausente — mantendo artefatos atuais do painel Mulheres")
+        return
     zonas = montar_zonas_geojson()
 
     print("lendo base VD (262 MB, aguarde)...")

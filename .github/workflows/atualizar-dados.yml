@@ -16,9 +16,9 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 180
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -36,6 +36,7 @@ jobs:
           python pipeline/06_mulheres.py
           python pipeline/07_painel.py
           python pipeline/08_mulheres_contexto.py
+          python pipeline/09_checar.py
 
       - name: Comitar artefatos atualizados
         run: |

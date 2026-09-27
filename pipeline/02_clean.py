@@ -19,6 +19,8 @@ from pathlib import Path
 import pandas as pd
 from openpyxl import load_workbook
 
+from classificar import eh_residencia
+
 BASE = Path(__file__).resolve().parent.parent
 RAW_DIR = BASE / "data" / "raw"
 OUT_DIR = BASE / "data" / "processed"
@@ -29,7 +31,9 @@ LON_MIN, LON_MAX = -47.00, -46.30
 
 CATEGORIA = {
     "HOMICÍDIO DOLOSO": "letais",
-    "HOMICÍDIO DOLOSO POR ACIDENTE DE TRÂNSITO": "letais",
+    # trânsito fica fora dos "violentos letais" (não é morte violenta intencional,
+    # critério FBSP/SSP); segue no Painel como tipo próprio
+    "HOMICÍDIO DOLOSO POR ACIDENTE DE TRÂNSITO": "transito",
     "LATROCÍNIO": "letais",
     "LESÃO CORPORAL SEGUIDA DE MORTE": "letais",
     "ROUBO - OUTROS": "roubos",
@@ -38,6 +42,7 @@ CATEGORIA = {
     "FURTO - OUTROS": "furtos",
     "FURTO DE VEÍCULO": "furtos",
     "FURTO DE CARGA": "furtos",
+    "LESÃO CORPORAL DOLOSA": "agressao",
     "ESTUPRO": "genero",
     "ESTUPRO DE VULNERÁVEL": "genero",
     # base separada CelularesSubtraidos (naturezas derivadas da RUBRICA)
@@ -106,6 +111,13 @@ def limpar(df: pd.DataFrame) -> pd.DataFrame:
     texto = [c for c in df.columns if c not in numericas and c != "DATA_OCORRENCIA_BO"]
     for c in texto:
         df[c] = df[c].astype("string").replace({"NULL": pd.NA, "": pd.NA, "None": pd.NA})
+
+    # fato dentro de casa/condomínio: define o recorte "roubo/furto em residência"
+    # (04/05) e tira agressões domésticas da camada de pontos (privacidade da vítima).
+    # Calculado DEPOIS da conversão para texto acima, para ficar booleano no parquet.
+    df["em_casa"] = [
+        eh_residencia(c, l) for c, l in zip(df["DESCR_CONDUTA"], df["DESCR_SUBTIPOLOCAL"])
+    ]
     return df
 
 
@@ -118,7 +130,7 @@ def processar(ano: int) -> None:
     df = limpar(pd.concat(partes, ignore_index=True))
     df.to_parquet(destino, index=False)
     geo = df["LATITUDE"].notna().mean()
-    print(f"[{ano}] {len(df):,} ocorrências (capital, 4 categorias) | {geo:.0%} com coordenada -> {destino.name}")
+    print(f"[{ano}] {len(df):,} ocorrências (capital) | {geo:.0%} com coordenada -> {destino.name}")
 
 
 def processar_celulares(ano: int) -> None:

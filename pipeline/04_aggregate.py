@@ -28,7 +28,10 @@ PROC = BASE / "data" / "processed"
 EXT = BASE / "data" / "external"
 WEB_DATA = BASE / "web" / "public" / "data"
 
-CATEGORIAS = ["letais", "roubos", "furtos", "genero", "celular"]
+CATEGORIAS = ["letais", "roubos", "furtos", "genero", "celular", "agressao"]
+# recortes: subconjuntos de uma natureza, expostos como séries extras — nunca
+# entram em naturezas[cat], senão seriam somados em dobro na categoria
+RECORTES = {"ROUBO - OUTROS": "ROUBO EM RESIDÊNCIA", "FURTO - OUTROS": "FURTO EM RESIDÊNCIA"}
 # condutas com leitura cidadã clara (evita a poluição do "Outros").
 # A fonte grafa o mesmo valor de vários jeitos entre anos (2022 usa MAIÚSCULAS,
 # às vezes com espaços extras) — casar pela forma normalizada, senão a série
@@ -94,13 +97,15 @@ def main() -> None:
             "categoria", "NATUREZA_APURADA", "DESCR_CONDUTA", "cd_distrito",
             "id_subprefeitura", "ANO_ESTATISTICA", "MES_ESTATISTICA",
             "HORA_OCORRENCIA_BO", "DESC_PERIODO", "DATA_OCORRENCIA_BO",
-        ])
+        ] + (["em_casa"] if "ocorrencias_" in a.name else []))
         # dia-da-semana derivado por arquivo: coerção protege contra datas
         # digitadas erradas na fonte (ex.: ano 1202), que estouram o concat
         d["diasemana"] = pd.to_datetime(d["DATA_OCORRENCIA_BO"], errors="coerce").dt.dayofweek
         return d.drop(columns=["DATA_OCORRENCIA_BO"])
 
     df = pd.concat((ler(a) for a in arquivos), ignore_index=True)
+    # aceita bool ou texto "True"/"False" (parquets gerados antes da correção no 02)
+    df["em_casa"] = df["em_casa"].astype("string").eq("True").fillna(False)
     df["mes"] = (
         df["ANO_ESTATISTICA"].astype(str) + "-" +
         df["MES_ESTATISTICA"].astype(int).astype(str).str.zfill(2)
@@ -111,6 +116,11 @@ def main() -> None:
     pos = {m: i for i, m in enumerate(meses)}
     nm = len(meses)
 
+    # base "por natureza" = linhas reais + cópias renomeadas dos recortes
+    rec = df[df["em_casa"] & df["NATUREZA_APURADA"].isin(list(RECORTES))].copy()
+    rec["NATUREZA_APURADA"] = rec["NATUREZA_APURADA"].map(RECORTES)
+    dfn = pd.concat([df, rec], ignore_index=True)
+
     naturezas = {
         c: sorted(df.loc[df["categoria"] == c, "NATUREZA_APURADA"].unique())
         for c in CATEGORIAS
@@ -118,7 +128,7 @@ def main() -> None:
 
     cidade = {
         "por_categoria": series_por(df, ["categoria"], pos, nm),
-        "por_natureza": series_por(df, ["NATUREZA_APURADA"], pos, nm),
+        "por_natureza": series_por(dfn, ["NATUREZA_APURADA"], pos, nm),
         "por_conduta": series_por(
             df[df["categoria"].isin(["roubos", "furtos", "celular"])
                & df["conduta_canon"].notna()],
@@ -134,9 +144,8 @@ def main() -> None:
         }
         for f in gj_d["features"]
     }
-    com_d = df[df["cd_distrito"].notna()]
-    distritos_cat = series_por(com_d, ["cd_distrito", "categoria"], pos, nm)
-    distritos_nat = series_por(com_d, ["cd_distrito", "NATUREZA_APURADA"], pos, nm)
+    distritos_cat = series_por(df[df["cd_distrito"].notna()], ["cd_distrito", "categoria"], pos, nm)
+    distritos_nat = series_por(dfn[dfn["cd_distrito"].notna()], ["cd_distrito", "NATUREZA_APURADA"], pos, nm)
     distritos = {
         cd: {**info_dist.get(cd, {"nome": cd, "pop": 0}),
              "cat": distritos_cat.get(cd, {}), "nat": distritos_nat.get(cd, {})}
@@ -151,10 +160,12 @@ def main() -> None:
         }
         for f in gj["features"]
     }
-    com_s = df[df["id_subprefeitura"].notna()].copy()
-    com_s["id_sub"] = com_s["id_subprefeitura"].astype(int).astype(str)
-    subs_cat = series_por(com_s, ["id_sub", "categoria"], pos, nm)
-    subs_nat = series_por(com_s, ["id_sub", "NATUREZA_APURADA"], pos, nm)
+    def com_sub(d):
+        d = d[d["id_subprefeitura"].notna()].copy()
+        d["id_sub"] = d["id_subprefeitura"].astype(int).astype(str)
+        return d
+    subs_cat = series_por(com_sub(df), ["id_sub", "categoria"], pos, nm)
+    subs_nat = series_por(com_sub(dfn), ["id_sub", "NATUREZA_APURADA"], pos, nm)
     subs = {
         sid: {**info_sub.get(sid, {"nome": sid, "pop": 0}),
               "cat": subs_cat.get(sid, {}), "nat": subs_nat.get(sid, {})}
@@ -168,9 +179,9 @@ def main() -> None:
             out.setdefault(nat, [0] * tam)[int(v)] = int(n)
         return out
 
-    com_hora = df[df["hora"].notna()].copy()
+    com_hora = dfn[dfn["hora"].notna()].copy()
     com_hora["slot"] = com_hora["diasemana"] * 24 + com_hora["hora"]
-    com_per = df[df["periodo"].notna()]
+    com_per = dfn[dfn["periodo"].notna()]
 
     dist_per = {}
     for (cd, nat, p), n in (

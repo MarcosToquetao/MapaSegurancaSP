@@ -5,7 +5,10 @@ Sem tippecanoe (Windows/CI-agnóstico): tiles MVT gerados com mapbox-vector-tile
 empacotados com pmtiles.writer. Esquema:
 
   - zooms 9–14 (overzoom do MapLibre cobre z>14)
-  - z14: todos os pontos, atributos c (categoria), n (natureza), m (índice do mês)
+  - z14: todos os pontos, atributos c (categoria), n (natureza), m (índice do mês),
+    p (período do dia), r (1 = roubo/furto "outros" dentro de residência)
+  - privacidade: agressões dentro de casa (quase sempre violência doméstica) não
+    viram ponto — ficam só no agregado por distrito
   - z9–13: amostragem aleatória com teto por tile/categoria; atributo w = fator de
     expansão (pontos representados), usado como heatmap-weight. Amostra uniforme
     preserva a distribuição mensal, então o filtro temporal segue honesto.
@@ -33,7 +36,7 @@ WEB_DATA = BASE / "web" / "public" / "data"
 MINZOOM, MAXZOOM = 9, 14
 EXTENT = 4096
 CAP = {9: 2000, 10: 3000, 11: 4000, 12: 6000, 13: 9000}  # por tile × categoria
-CATEGORIAS = ["letais", "roubos", "furtos", "genero", "celular"]
+CATEGORIAS = ["letais", "roubos", "furtos", "genero", "celular", "agressao"]
 random.seed(42)  # reprodutível entre execuções
 
 
@@ -49,14 +52,18 @@ def lonlat_para_tile(lon: float, lat: float, z: int) -> tuple[int, int, float, f
 def carregar_pontos() -> pd.DataFrame:
     arquivos = sorted(list(PROC.glob("ocorrencias_*.parquet")) +
                       list(PROC.glob("celulares_*.parquet")))
+    cols = ["categoria", "NATUREZA_APURADA", "LATITUDE", "LONGITUDE",
+            "ANO_ESTATISTICA", "MES_ESTATISTICA", "HORA_OCORRENCIA_BO", "DESC_PERIODO"]
     df = pd.concat(
-        (pd.read_parquet(a, columns=[
-            "categoria", "NATUREZA_APURADA", "LATITUDE", "LONGITUDE",
-            "ANO_ESTATISTICA", "MES_ESTATISTICA",
-            "HORA_OCORRENCIA_BO", "DESC_PERIODO",
-        ]) for a in arquivos),
+        (pd.read_parquet(a, columns=cols + (["em_casa"] if "ocorrencias_" in a.name else []))
+         for a in arquivos),
         ignore_index=True,
     ).dropna(subset=["LATITUDE", "LONGITUDE"])
+    # aceita bool ou texto "True"/"False" (parquets gerados antes da correção no 02)
+    df["em_casa"] = df["em_casa"].astype("string").eq("True").fillna(False)
+    df = df[df["categoria"].isin(CATEGORIAS)
+            & ~((df["categoria"] == "agressao") & df["em_casa"])]
+    df["r"] = (df["em_casa"] & df["NATUREZA_APURADA"].isin(["ROUBO - OUTROS", "FURTO - OUTROS"])).astype(int)
     df["mes"] = (
         df["ANO_ESTATISTICA"].astype(str) + "-" +
         df["MES_ESTATISTICA"].astype(int).astype(str).str.zfill(2)
@@ -89,13 +96,14 @@ def main() -> None:
         df["NATUREZA_APURADA"].map(n_idx).to_numpy(),
         df["mes"].map(m_idx).to_numpy(),
         df["periodo"].to_numpy(),
+        df["r"].to_numpy(),
     )
 
     tiles: dict[tuple[int, int, int], list] = defaultdict(list)
     for z in range(MINZOOM, MAXZOOM + 1):
-        for lon, lat, c, n, m, p in zip(*cols):
+        for lon, lat, c, n, m, p, r in zip(*cols):
             xt, yt, px, py = lonlat_para_tile(lon, lat, z)
-            tiles[(z, xt, yt)].append((px, py, int(c), int(n), int(m), int(p)))
+            tiles[(z, xt, yt)].append((px, py, int(c), int(n), int(m), int(p), int(r)))
 
     print(f"{len(tiles):,} tiles a codificar")
     destino = WEB_DATA / "ocorrencias.pmtiles"
@@ -110,10 +118,10 @@ def main() -> None:
             pontos = tiles[(z, xt, yt)]
             feats = []
             if z == MAXZOOM:
-                for px, py, c, n, m, p in pontos:
+                for px, py, c, n, m, p, r in pontos:
                     feats.append({
                         "geometry": {"type": "Point", "coordinates": [round(px), round(py)]},
-                        "properties": {"c": c, "n": n, "m": m, "p": p, "w": 1},
+                        "properties": {"c": c, "n": n, "m": m, "p": p, "r": r, "w": 1},
                     })
             else:
                 por_cat = defaultdict(list)
@@ -125,10 +133,10 @@ def main() -> None:
                     wfator = len(grupo) / len(amostra)
                     # n e p entram em todos os zooms: os filtros natureza-first e
                     # de período precisam valer também no heatmap de zoom médio
-                    for px, py, _, n, m, p in amostra:
+                    for px, py, _, n, m, p, r in amostra:
                         feats.append({
                             "geometry": {"type": "Point", "coordinates": [round(px), round(py)]},
-                            "properties": {"c": c, "n": n, "m": m, "p": p, "w": round(wfator, 2)},
+                            "properties": {"c": c, "n": n, "m": m, "p": p, "r": r, "w": round(wfator, 2)},
                         })
             data = mvt_encode(
                 [{"name": "oc", "features": feats}],
@@ -151,12 +159,12 @@ def main() -> None:
                 "center_lat_e7": int(-23.60 * 1e7),
             },
             {
-                "name": "Ocorrências SSP-SP (capital)",
+                "name": "Cidade Segura — ocorrências SSP-SP (capital)",
                 "vector_layers": [{
                     "id": "oc",
                     "minzoom": MINZOOM,
                     "maxzoom": MAXZOOM,
-                    "fields": {"c": "Number", "n": "Number", "m": "Number", "p": "Number", "w": "Number"},
+                    "fields": {"c": "Number", "n": "Number", "m": "Number", "p": "Number", "r": "Number", "w": "Number"},
                 }],
             },
         )
